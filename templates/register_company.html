@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Company Registration – CareerSwipe{% endblock %}
 {% block content %}
-<div class="auth-wrap company-theme">
+<div class="auth-wrap seeker-theme">
   <div class="auth-card">
-    <div class="auth-header company-header">
-      <span class="role-badge badge-company">🏢 /companies</span>
+    <div class="auth-header">
       <h2>Register your company</h2>
       <p>Post jobs and discover top talent</p>
     </div>
@@ -61,8 +60,8 @@
         <input type="file" name="logo" id="logo-input" accept=".png,.jpg,.jpeg" style="display:none">
       </div>
 
-      <button type="submit" class="btn btn-company btn-full">Register Company →</button>
-      <p class="auth-link">Already registered? <a href="{{ url_for('login_company') }}" class="company-link">Sign in to dashboard</a></p>
+      <button type="submit" class="btn btn-primary btn-full">Register Company →</button>
+      <p class="auth-link">Already registered? <a href="{{ url_for('login_company') }}">Sign in to dashboard</a></p>
     </form>
   </div>
 </div>

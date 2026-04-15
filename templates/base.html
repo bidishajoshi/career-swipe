@@ -7,24 +7,44 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<script>
+  // Immediate theme detection to prevent flash
+  (function() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.documentElement.classList.add('light-mode');
+    }
+  })();
+</script>
 {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{{ 'light-mode' if request.cookies.get('theme') == 'light' else '' }}">
 <nav class="navbar">
   <a class="nav-logo" href="{{ url_for('index') }}">Career<span>Swipe</span></a>
-  <div class="nav-links">
-    {% if session.get('seeker_id') %}
-      <a href="{{ url_for('seeker_dashboard') }}">Dashboard</a>
-      <a href="{{ url_for('edit_seeker_profile') }}">Profile</a>
-      <a href="{{ url_for('logout') }}" class="btn-outline">Logout</a>
-    {% elif session.get('company_id') %}
-      <a href="{{ url_for('company_dashboard') }}">Dashboard</a>
-      <a href="{{ url_for('post_job') }}">Post Job</a>
-      <a href="{{ url_for('logout') }}" class="btn-outline">Logout</a>
-    {% else %}
-      <a href="{{ url_for('login_seeker') }}">Seeker Login</a>
-      <a href="{{ url_for('login_company') }}">Company Login</a>
-    {% endif %}
+  <div class="nav-right">
+    <button id="themeToggle" class="theme-btn" aria-label="Toggle Theme">
+      <span class="theme-icon-dark">🌙</span>
+      <span class="theme-icon-light">☀️</span>
+    </button>
+    
+    <div class="nav-links" id="navLinks">
+      {% if session.get('seeker_id') %}
+        <a href="{{ url_for('seeker_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('edit_seeker_profile') }}">Profile</a>
+        <a href="{{ url_for('logout') }}" class="btn-outline logout-btn">Logout</a>
+      {% elif session.get('company_id') %}
+        <a href="{{ url_for('company_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('post_job') }}">Post Job</a>
+        <a href="{{ url_for('logout') }}" class="btn-outline logout-btn">Logout</a>
+      {% else %}
+        <a href="{{ url_for('login_seeker') }}">Seeker Login</a>
+        <a href="{{ url_for('login_company') }}">Company Login</a>
+      {% endif %}
+    </div>
+
+    <button id="menuToggle" class="menu-btn" aria-label="Open Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 

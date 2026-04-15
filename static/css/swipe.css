@@ -26,16 +26,18 @@
   top: 0; left: 0;
   width: 100%;
   height: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 32px;
   padding: 0;
   overflow: hidden;
   cursor: grab;
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2), box-shadow 0.3s ease;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s ease, border-color 0.4s ease;
   user-select: none;
   will-change: transform;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.06), 0 2px 10px rgba(0,0,0,0.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
 }
@@ -52,8 +54,9 @@
 }
 
 .job-card:hover {
-  transform: translateY(-12px) scale(1.03) !important;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--primary);
+  box-shadow: 0 0 40px rgba(59, 130, 246, 0.2), 0 20px 50px rgba(0, 0, 0, 0.5);
   z-index: 100 !important;
 }
 
@@ -89,7 +92,7 @@
   position: relative;
   flex: 1;
   width: 100%;
-  background: #f0f0f5;
+  background: var(--bg-deep);
   overflow: hidden;
 }
 .jc-full-bg {
@@ -119,20 +122,20 @@
 }
 
 .jc-info {
-  background: #fff;
+  background: rgba(15, 23, 42, 0.8);
   padding: 1.5rem;
   padding-top: 1rem;
   display: flex; flex-direction: column; gap: 8px;
   position: relative; z-index: 2;
+  border-top: 1px solid var(--border);
 }
-.jc-title-row h3 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
-.jc-company-row { display: flex; justify-content: space-between; font-size: 14px; color: #6b6b7a; }
-.jc-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.jc-title-row h3 { font-size: 20px; font-weight: 700; color: #fff; }
 .tag-pill {
-  background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 500;
+  background: rgba(255, 255, 255, 0.05); color: var(--text-muted); padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border);
 }
 .jc-description-fold {
-  font-size: 14px; color: #4b4b5b; line-height: 1.6; margin-top: 8px;
+  font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-top: 8px;
   overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
 }
 
