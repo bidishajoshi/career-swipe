@@ -257,21 +257,25 @@ body.light-mode .nav-links a[href*="login"]:hover, body.light-mode .nav-links a[
 }
 .demo-card {
   position: absolute;
-  background: #fff;
-  border-radius: 16px;
-  padding: 1.25rem;
-  width: 220px;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  width: 240px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  gap: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  transition: all 0.4s;
 }
-.demo-card span { font-size: 1.6rem; }
-.demo-card b { font-size: 15px; color: var(--text); }
-.demo-card small { font-size: 12px; color: var(--muted); }
-.dc1 { top: 40px; left: 20px; transform: rotate(-2deg); z-index: 3; }
-.dc2 { top: 20px; left: 10px; transform: rotate(1deg); z-index: 2; }
-.dc3 { top: 0;    left: 0;    transform: rotate(-4deg); z-index: 1; opacity: 0.7; }
+.demo-card:hover { transform: translateY(-10px) rotate(0deg) !important; z-index: 100; border-color: var(--primary); }
+.demo-card span { font-size: 1.8rem; margin-bottom: 4px; }
+.demo-card b { font-size: 16px; color: var(--text); font-weight: 700; }
+.demo-card small { font-size: 13px; color: var(--text-muted); }
+.dc1 { top: 60px; left: 40px; transform: rotate(-3deg); z-index: 3; }
+.dc2 { top: 30px; left: 20px; transform: rotate(2deg); z-index: 2; }
+.dc3 { top: 0;    left: 0;    transform: rotate(-5deg); z-index: 1; opacity: 0.6; }
 
 /* ── Features ────────────────────────────────────────────────────────────── */
 .features {
@@ -284,15 +288,18 @@ body.light-mode .nav-links a[href*="login"]:hover, body.light-mode .nav-links a[
   justify-content: center;
 }
 .feature-card {
-  background: var(--white);
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.75rem;
-  flex: 1 1 240px;
+  border-radius: 20px;
+  padding: 2rem;
+  flex: 1 1 280px;
+  transition: all 0.3s;
 }
-.feat-icon { font-size: 2rem; margin-bottom: 1rem; }
-.feature-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
-.feature-card p  { font-size: 14px; color: var(--muted); line-height: 1.65; }
+.feature-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+.feat-icon { font-size: 2.2rem; margin-bottom: 1.25rem; }
+.feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+.feature-card p  { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
 
 /* ── Auth ────────────────────────────────────────────────────────────────── */
 .auth-wrap {
