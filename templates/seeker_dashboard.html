@@ -87,69 +87,59 @@
       </div>
 
       {% if jobs %}
-      <div class="swipe-container">
+      <div class="swipe-container" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
       <div class="swipe-arena">
         <div class="swipe-stack" id="swipeStack">
           {% for job in jobs %}
           <div class="job-card" data-job-id="{{ job.id }}" data-index="{{ loop.index0 }}">
-            <div class="jc-top">
+            <!-- Card Image/Logo Area -->
+            <div class="jc-visual">
               {% if job.logo_path %}
-                <img src="{{ url_for('static', filename=job.logo_path.replace('\\', '/').replace('static/', '')) }}" class="jc-logo" alt="logo">
+                <img src="{{ url_for('static', filename=job.logo_path.replace('\\', '/').replace('static/', '')) }}" class="jc-full-bg" alt="logo">
               {% else %}
-                <div class="jc-logo-placeholder">{{ job.company_name[0] }}</div>
+                <div class="jc-full-bg-placeholder" style="background: linear-gradient(135deg, var(--seeker), #ff6b6b)">
+                  {{ job.company_name[0] }}
+                </div>
               {% endif %}
-              <div>
-                <h3>{{ job.title }} {% if job.is_boosted %}<span class="boost-badge">PRO</span>{% endif %}</h3>
-                <span class="jc-company">{{ job.company_name }}</span>
-              </div>
-              <div class="scores-wrap">
+              
+              <div class="jc-gradient-overlay"></div>
+              
+              <div class="jc-floating-scores">
                 {% if job.match_score > 0 %}
-                <div class="score-circle match-high" style="--score: {{ job.match_score }}%" data-tooltip="AI Match Score">
-                  <span class="score-val">{{ job.match_score }}%</span>
-                </div>
-                {% endif %}
-                {% if job.ats_score > 0 %}
-                <div class="score-circle ats-score" style="--score: {{ job.ats_score }}%" data-tooltip="ATS Compatibility">
-                  <span class="score-val">{{ job.ats_score }}</span>
+                <div class="score-circle match-high" style="--score: {{ job.match_score }}%">
+                  <span class="score-val">{{ job.match_score|int }}%</span>
                 </div>
                 {% endif %}
               </div>
-            </div>
 
-            <div class="jc-meta">
-              {% if job.location %}<span>📍 {{ job.location }}</span>{% endif %}
-              <span>🏠 {{ job.job_location_type }}</span>
-              <span>⏱ {{ job.job_type }}</span>
-              {% if job.salary %}<span>💰 {{ job.salary }}</span>{% endif %}
-            </div>
-
-            <div class="jc-desc">{{ job.description[:220] }}{% if job.description|length > 220 %}…{% endif %}</div>
-
-            {% if job.required_skills %}
-            <div class="jc-skills">
-              {% for sk in job.required_skills.split(',')[:6] %}
-                <span class="skill-pill seeker-pill">{{ sk.strip()|capitalize }}</span>
-              {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- ATS Feedback -->
-            <div class="ats-peek">
-              <div class="sidebar-label">Skill Gap Detection</div>
-              {% if job.missing_skills %}
-              <div class="missing-skills-tooltip">Missing: {{ job.missing_skills[:4]|join(', ') }}</div>
+              {% if job.is_boosted %}
+                <span class="jc-boost-tag">PRO listing</span>
               {% endif %}
-              <div class="sidebar-label" style="margin-top:8px">ATS Suggestions</div>
-              <ul>
-                {% for finding in job.ats_findings[:2] %}
-                <li>{{ finding }}</li>
-                {% endfor %}
-              </ul>
             </div>
 
-            <div class="swipe-hint">
-              <span class="hint-left">← Skip</span>
-              <span class="hint-right">Apply →</span>
+            <div class="jc-info">
+              <div class="jc-title-row">
+                <h3>{{ job.title }}</h3>
+              </div>
+              <div class="jc-company-row">
+                <span class="jc-comp-name">{{ job.company_name }}</span>
+                <span class="jc-loc">📍 {{ job.location }}</span>
+              </div>
+
+              <div class="jc-tags">
+                <span class="tag-pill">⏱ {{ job.job_type }}</span>
+                <span class="tag-pill">🏠 {{ job.job_location_type }}</span>
+                {% if job.salary %}<span class="tag-pill">💰 {{ job.salary }}</span>{% endif %}
+              </div>
+
+              <div class="jc-description-fold">
+                {{ job.description[:250] }}...
+              </div>
+            </div>
+
+            <div class="swipe-hint-bottom">
+              <span class="h-skip">NOPE</span>
+              <span class="h-apply">APPLY</span>
             </div>
           </div>
           {% endfor %}

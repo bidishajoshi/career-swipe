@@ -29,8 +29,12 @@
         <span class="stat-label">Jobs posted</span>
       </div>
       <div class="stat-box">
+        <span class="stat-num">{{ applicants|selectattr('status', 'equalto', 'shortlisted')|list|length }}</span>
+        <span class="stat-label">Shortlisted</span>
+      </div>
+      <div class="stat-box">
         <span class="stat-num">{{ applicants|length }}</span>
-        <span class="stat-label">Applicants</span>
+        <span class="stat-label">Total Swipes</span>
       </div>
     </div>
   </aside>

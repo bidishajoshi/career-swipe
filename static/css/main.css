@@ -357,7 +357,7 @@ body {
 .stat-num  { display: block; font-size: 1.4rem; font-weight: 700; font-family: 'Syne', sans-serif; }
 .stat-label { font-size: 11px; color: var(--muted); }
 
-.dash-main { flex: 1; padding: 2rem; overflow-y: auto; max-width: 900px; }
+.dash-main { flex: 1; padding: 2rem; overflow-y: auto; width: 100%; }
 
 .section-header {
   display: flex;
@@ -420,7 +420,7 @@ body {
 .match-high { --clr: var(--seeker); }
 .ats-score  { --clr: #7c3aed; }
 
-/* ── Hover Peek ─────────────────────────────────────────────────────────── */
+/* ── Hover Effects ──────────────────────────────────────────────────────── */
 .job-card {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
@@ -429,23 +429,6 @@ body {
   box-shadow: 0 15px 35px rgba(0,0,0,0.1);
   z-index: 100 !important;
 }
-.ats-peek {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease, margin 0.3s ease;
-  margin-top: 0;
-  background: #f8f4ff;
-  border-radius: 10px;
-  padding: 0 12px;
-  font-size: 12px;
-}
-.job-card:hover .ats-peek {
-  max-height: 100px;
-  margin-top: 15px;
-  padding: 10px 12px;
-}
-.ats-peek ul { padding-left: 18px; color: #5b21b6; }
-.ats-peek li { margin-bottom: 4px; }
 
 /* App table */
 .app-table-wrap { overflow-x: auto; }

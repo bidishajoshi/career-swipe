@@ -234,8 +234,7 @@ def seeker_dashboard():
             "required_skills": job.required_skills,
             "match_score": match_score,
             "ats_score": ats_data.get("score", 0) if ats_data else 0,
-            "ats_findings": ats_data.get("findings", []) if ats_data else [],
-            "missing_skills": ats_data.get("missing_skills", [])
+            "ats_findings": ats_data.get("findings", []) if ats_data else []
         }
         jobs.append(job_data)
 

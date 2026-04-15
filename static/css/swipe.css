@@ -2,13 +2,14 @@
 .swipe-arena {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 .swipe-stack {
   position: relative;
-  height: 420px;
-  margin-bottom: 1.5rem;
+  height: 720px;
+  margin-bottom: 2.5rem;
   touch-action: pan-y;
 }
 
@@ -17,15 +18,19 @@
   position: absolute;
   top: 0; left: 0;
   width: 100%;
+  height: 100%;
   background: #ffffff;
   border: 1px solid #e5e5ea;
-  border-radius: 20px;
-  padding: 1.5rem;
+  border-radius: 30px;
+  padding: 0;
+  overflow: hidden;
   cursor: grab;
-  transition: transform 0.08s ease, box-shadow 0.15s ease;
+  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
   user-select: none;
   will-change: transform;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
 }
 .job-card:active { cursor: grabbing; }
 
@@ -47,74 +52,62 @@
   opacity: 0.3;
 }
 
-/* Card anatomy */
-.jc-top {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
+/* --- Tinder Visuals --- */
+.jc-visual {
   position: relative;
+  flex: 1;
+  width: 100%;
+  background: #f0f0f5;
+  overflow: hidden;
 }
-
-.jc-logo {
-  width: 46px; height: 46px;
-  border-radius: 10px;
+.jc-full-bg, .jc-full-bg-placeholder {
+  width: 100%; height: 100%;
   object-fit: cover;
-  border: 1px solid #e5e5ea;
-  flex-shrink: 0;
-}
-.jc-logo-placeholder {
-  width: 46px; height: 46px;
-  border-radius: 10px;
-  background: #0a1628;
-  color: #00c896;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  font-size: 1.2rem;
-  flex-shrink: 0;
+  font-family: 'Syne', sans-serif; font-size: 5rem; font-weight: 800; color: #fff;
+}
+.jc-gradient-overlay {
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 60%;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+  pointer-events: none;
+}
+.jc-floating-scores {
+  position: absolute; top: 1.5rem; right: 1.5rem; z-index: 5;
+}
+.jc-boost-tag {
+  position: absolute; top: 1.5rem; left: 1.5rem;
+  background: rgba(255, 215, 0, 0.9); color: #000;
+  padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
 }
 
-.jc-top h3    { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
-.jc-company   { font-size: 13px; color: #6b6b7a; }
-
-.match-badge {
-  position: absolute;
-  top: 0; right: 0;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
+.jc-info {
+  background: #fff;
+  padding: 1.5rem;
+  padding-top: 1rem;
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative; z-index: 2;
 }
-.match-high { background: #d1fae5; color: #065f46; }
-.match-mid  { background: #fef9c3; color: #854d0e; }
-.match-low  { background: #f3f4f6; color: #6b7280; }
-
-.jc-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
+.jc-title-row h3 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+.jc-company-row { display: flex; justify-content: space-between; font-size: 14px; color: #6b6b7a; }
+.jc-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.tag-pill {
+  background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 500;
 }
-.jc-meta span { font-size: 12px; color: #6b6b7a; }
-
-.jc-desc {
-  font-size: 13px;
-  color: #4b4b5a;
-  line-height: 1.6;
-  margin-bottom: 12px;
+.jc-description-fold {
+  font-size: 14px; color: #4b4b5b; line-height: 1.6; margin-top: 8px;
+  overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
 }
 
-/* Swipe hints */
-.swipe-hint {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid #f0f0f0;
+.swipe-hint-bottom {
+  display: flex; justify-content: space-between; padding: 1rem 1.5rem;
+  pointer-events: none; opacity: 0; transition: opacity 0.2s;
 }
-.hint-left  { font-size: 12px; color: #bbb; }
-.hint-right { font-size: 12px; color: #bbb; }
+.job-card.swiping-left .h-skip { font-weight: 800; color: #ef4444; border: 3px solid #ef4444; padding: 4px 12px; border-radius: 8px; transform: rotate(-15deg); display: inline-block; }
+.job-card.swiping-right .h-apply { font-weight: 800; color: #10b981; border: 3px solid #10b981; padding: 4px 12px; border-radius: 8px; transform: rotate(15deg); display: inline-block; }
+.job-card.swiping-left .swipe-hint-bottom, .job-card.swiping-right .swipe-hint-bottom { opacity: 1; }
+
+.h-skip, .h-apply { font-size: 1.2rem; }
 
 /* Dragging state indicators */
 .job-card.swiping-right .hint-right { color: #e94560; font-weight: 600; }
