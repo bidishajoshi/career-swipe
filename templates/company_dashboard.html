@@ -7,7 +7,7 @@
   <aside class="sidebar company-sidebar">
     <div class="sidebar-avatar">
       {% if company.logo_path %}
-        <img src="{{ url_for('static', filename=company.logo_path.replace('static/', '')) }}"
+        <img src="{{ url_for('static', filename=company.logo_path.replace('\\', '/').replace('static/', '')) }}"
              class="company-logo-sm" alt="logo">
       {% else %}
         <div class="avatar-circle company-avatar">{{ company.company_name[0] }}</div>
@@ -116,7 +116,7 @@
                 <span class="status-badge status-{{ a.status }}">{{ a.status|capitalize }}</span>
               {% endif %}
               {% if a.resume_path %}
-                <a href="{{ url_for('static', filename=a.resume_path.replace('static/', '')) }}"
+                <a href="{{ url_for('static', filename=a.resume_path.replace('\\', '/').replace('static/', '')) }}"
                    target="_blank" class="btn btn-outline btn-sm">📄 Resume</a>
               {% endif %}
             </div>

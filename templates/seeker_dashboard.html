@@ -51,7 +51,7 @@
           <div class="job-card" data-job-id="{{ job.id }}" data-index="{{ loop.index0 }}">
             <div class="jc-top">
               {% if job.logo_path %}
-                <img src="{{ url_for('static', filename=job.logo_path.replace('static/', '')) }}" class="jc-logo" alt="logo">
+                <img src="{{ url_for('static', filename=job.logo_path.replace('\\', '/').replace('static/', '')) }}" class="jc-logo" alt="logo">
               {% else %}
                 <div class="jc-logo-placeholder">{{ job.company_name[0] }}</div>
               {% endif %}
