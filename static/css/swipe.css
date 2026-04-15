@@ -31,15 +31,20 @@
 
 /* Top N cards peek */
 .job-card:nth-last-child(2) {
-  transform: translateY(8px) scale(0.97);
-  z-index: 1;
+  transform: translateY(12px) scale(0.96);
+  z-index: 5;
+  opacity: 0.9;
 }
 .job-card:nth-last-child(3) {
-  transform: translateY(16px) scale(0.94);
-  z-index: 0;
+  transform: translateY(24px) scale(0.92);
+  z-index: 4;
+  opacity: 0.7;
 }
 .job-card:last-child {
-  z-index: 2;
+  z-index: 10;
+}
+.job-card:hover ~ .job-card {
+  opacity: 0.3;
 }
 
 /* Card anatomy */

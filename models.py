@@ -24,7 +24,7 @@ class Seeker(db.Model):
     career_field = db.Column(db.String(100))        # IT / Marketing / Finance etc
     job_status = db.Column(db.String(50))           # searching / employed / open to offers
     job_location_type = db.Column(db.String(50))    # remote / onsite / hybrid
-    shift = db.Column(db.String(50))                # day / night / flexible
+    shift_preference = db.Column(db.String(50))     # day / night / flexible
 
     verification_token = db.Column(db.String(100))
     is_verified = db.Column(db.Boolean, default=False)
@@ -75,7 +75,13 @@ class JobListing(db.Model):
     required_skills = db.Column(db.Text)
     location = db.Column(db.String(255))
     job_type = db.Column(db.String(50), default='Full-time')
+    job_location_type = db.Column(db.String(50), default='Onsite') # Onsite, Remote, Hybrid
     salary = db.Column(db.String(100))
+    max_salary = db.Column(db.Integer)
+    experience_level = db.Column(db.String(50), default='Entry Level') # Entry, Mid, Senior, Expert
+    min_experience = db.Column(db.Integer, default=0)
+    tags = db.Column(db.Text) # comma separated keywords
+    is_boosted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     swipes = db.relationship(
@@ -101,5 +107,11 @@ class JobSwipe(db.Model):
         nullable=False
     )
     direction = db.Column(db.String(10), nullable=False)  # left / right
-    status = db.Column(db.String(20), default='pending')   # pending / accepted / rejected
+    status = db.Column(db.String(20), default='pending')   # pending / shortlisted / rejected / interview
+    
+    # AI Scores
+    ats_score = db.Column(db.Float, default=0.0)
+    match_score = db.Column(db.Float, default=0.0)
+    ai_rank_score = db.Column(db.Float, default=0.0)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

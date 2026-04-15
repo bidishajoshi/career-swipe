@@ -1,24 +1,25 @@
 /* ── CareerSwipe · main.css ─────────────────────────────────────────────── */
 :root {
-  --seeker: #e94560;
-  --seeker-light: #fde8ee;
-  --company: #00c896;
-  --company-dark: #0a1628;
-  --company-light: #d4f5ec;
-  --bg: #f7f6f3;
+  --seeker: #ff2e63;
+  --seeker-light: #fff0f3;
+  --company: #08d1d1;
+  --company-dark: #252a34;
+  --company-light: #e8ffff;
+  --bg: #f4f7f6;
   --white: #ffffff;
   --text: #1a1a2e;
   --muted: #6b6b7a;
-  --border: #e5e5ea;
-  --radius: 14px;
-  --radius-sm: 8px;
+  --border: #e2e8f0;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --glass: rgba(255, 255, 255, 0.7);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
+  font-family: 'Outfit', sans-serif;
+  background: radial-gradient(circle at top right, #f8fafc, #f1f5f9);
   color: var(--text);
   min-height: 100vh;
   display: flex;
@@ -378,68 +379,73 @@ body {
   color: var(--muted);
 }
 
-/* Skill pills */
-.skill-pill {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11.5px;
-  font-weight: 500;
+/* ── Filters ────────────────────────────────────────────────────────────── */
+.filters-bar {
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.3);
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
-.seeker-pill  { background: var(--seeker-light); color: var(--seeker); }
-.company-pill { background: var(--company-light); color: #059669; }
-
-/* Status badges */
-.status-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-.status-pending  { background: #fef9c3; color: #854d0e; }
-.status-accepted { background: #d1fae5; color: #065f46; }
-.status-rejected { background: #fee2e2; color: #991b1b; }
-
-/* Jobs grid (company) */
-.jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 1rem; }
-.job-listing-card {
-  background: var(--white);
+.filter-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.filter-select, .filter-input {
+  background: #fff;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.25rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
 }
-.jlc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.jlc-header h3 { font-size: 15px; font-weight: 600; }
-.jlc-type { font-size: 11px; background: var(--company-light); color: #059669; padding: 3px 8px; border-radius: 20px; }
-.jlc-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-.jlc-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
-.jc-skills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.filter-input { flex: 1; min-width: 150px; }
 
-/* Applicant cards */
-.applicants-list { display: flex; flex-direction: column; gap: 10px; }
-.applicant-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.1rem 1.25rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+/* ── Score Circles ──────────────────────────────────────────────────────── */
+.scores-wrap { display: flex; gap: 10px; margin-left: auto; }
+.score-circle {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  background: conic-gradient(var(--clr) var(--score), #eee 0deg);
+  font-size: 10px; font-weight: 700;
+  padding: 3px;
 }
-.app-card-left  { display: flex; gap: 12px; align-items: flex-start; }
-.app-card-left strong { display: block; font-size: 14px; font-weight: 600; }
-.app-card-left small  { display: block; font-size: 12px; color: var(--muted); }
-.app-for { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.app-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.app-time { font-size: 11px; color: var(--muted); }
-.app-skills { display: flex; gap: 5px; flex-wrap: wrap; }
-.app-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.score-circle::after {
+  content: '';
+  position: absolute; width: 34px; height: 34px;
+  background: #fff; border-radius: 50%;
+}
+.score-val { position: relative; z-index: 1; }
+.match-high { --clr: var(--seeker); }
+.ats-score  { --clr: #7c3aed; }
 
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--muted);
+/* ── Hover Peek ─────────────────────────────────────────────────────────── */
+.job-card {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
-.empty-state h3 { margin-bottom: 8px; font-size: 1.1rem; }
-.empty-state p  { font-size: 14px; }
+.job-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  z-index: 100 !important;
+}
+.ats-peek {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, margin 0.3s ease;
+  margin-top: 0;
+  background: #f8f4ff;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+.job-card:hover .ats-peek {
+  max-height: 100px;
+  margin-top: 15px;
+  padding: 10px 12px;
+}
+.ats-peek ul { padding-left: 18px; color: #5b21b6; }
+.ats-peek li { margin-bottom: 4px; }
 
 /* App table */
 .app-table-wrap { overflow-x: auto; }
@@ -447,6 +453,8 @@ body {
 .app-table th { text-align: left; padding: 10px 12px; border-bottom: 1.5px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .app-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
 .app-table tr:last-child td { border-bottom: none; }
+
+.status-shortlisted { background: #ede9fe; color: #7c3aed; }
 
 /* Footer */
 .footer { background: #1a1a2e; color: rgba(255,255,255,0.4); text-align: center; padding: 1.5rem; font-size: 13px; margin-top: auto; }

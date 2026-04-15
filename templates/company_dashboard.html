@@ -99,6 +99,14 @@
           </div>
           <div class="app-card-right">
             <span class="app-time">{{ a.applied_at.strftime('%b %d, %Y %H:%M') if a.applied_at else '' }}</span>
+            <div class="scores-wrap" style="margin-bottom: 8px">
+              <div class="score-circle match-high" style="--score: {{ a.match_score }}%" data-tooltip="Match">
+                <span class="score-val">{{ a.match_score|int }}%</span>
+              </div>
+              <div class="score-circle ats-score" style="--score: {{ a.ats_score }}%" data-tooltip="ATS">
+                <span class="score-val">{{ a.ats_score|int }}</span>
+              </div>
+            </div>
             {% if a.skills %}
             <div class="app-skills">
               {% for sk in a.skills.split(',')[:4] %}
@@ -108,10 +116,20 @@
             {% endif %}
             <div class="app-actions">
               {% if a.status == 'pending' %}
-                <a href="{{ url_for('update_applicant', swipe_id=a.swipe_id, action='accept') }}"
-                   class="btn btn-accept btn-sm">✓ Accept</a>
+                <a href="{{ url_for('update_applicant', swipe_id=a.swipe_id, action='shortlist') }}"
+                   class="btn btn-primary btn-sm" style="background: #7c3aed">⭐ Shortlist</a>
                 <a href="{{ url_for('update_applicant', swipe_id=a.swipe_id, action='reject') }}"
                    class="btn btn-reject btn-sm">✕ Reject</a>
+              {% elif a.status == 'shortlisted' %}
+                <span class="status-badge status-shortlisted">⭐ Shortlisted</span>
+                <a href="{{ url_for('update_applicant', swipe_id=a.swipe_id, action='interview') }}"
+                   class="btn btn-accept btn-sm">📅 Interview</a>
+                <a href="{{ url_for('update_applicant', swipe_id=a.swipe_id, action='accept') }}"
+                   class="btn btn-accept btn-sm">✓ Accept</a>
+              {% elif a.status == 'interview' %}
+                <span class="status-badge" style="background:#dbeafe;color:#1e40af">📅 Interviewing</span>
+                <a href="{{ url_for('update_applicant', swipe_id=a.swipe_id, action='accept') }}"
+                   class="btn btn-accept btn-sm">✓ Hire</a>
               {% else %}
                 <span class="status-badge status-{{ a.status }}">{{ a.status|capitalize }}</span>
               {% endif %}

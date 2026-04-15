@@ -10,7 +10,8 @@ from werkzeug.utils import secure_filename
 from config import Config
 from extensions import db, migrate, mail
 from models import Seeker, Company, JobListing, JobSwipe
-from utils.tfidf import parse_resume, match_resume_to_job
+from utils.tfidf import parse_resume, match_resume_to_job, extract_keywords
+from utils.ats import calculate_ats_score
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -180,16 +181,43 @@ def seeker_dashboard():
 
     swiped_job_ids = [swipe.job_id for swipe in seeker.swipes]
     
+    # ── Indeed-style Filters ──
+    job_type = request.args.get('job_type')
+    exp_level = request.args.get('experience_level')
+    location_type = request.args.get('location_type') # remote/hybrid/onsite
+    location = request.args.get('location')
+    min_sal = request.args.get('min_salary', type=int)
+    
     query = JobListing.query
     if swiped_job_ids:
         query = query.filter(~JobListing.id.in_(swiped_job_ids))
-    available_jobs = query.order_by(JobListing.created_at.desc()).limit(20).all()
+    
+    if job_type:
+        query = query.filter(JobListing.job_type == job_type)
+    if exp_level:
+        query = query.filter(JobListing.experience_level == exp_level)
+    if location_type:
+        query = query.filter(JobListing.job_location_type == location_type)
+    if location:
+        query = query.filter(JobListing.location.ilike(f'%{location}%'))
+    if min_sal:
+        query = query.filter(JobListing.max_salary >= min_sal)
+
+    # Smart Ranking Logic: Priority to Boosted Jobs and high Match Score
+    available_jobs_data = query.order_by(JobListing.is_boosted.desc(), JobListing.created_at.desc()).limit(50).all()
 
     resume_text = parse_resume(seeker.resume_path) if seeker.resume_path and os.path.exists(seeker.resume_path) else ""
+    keywords = extract_keywords(resume_text) if resume_text else []
     
     # Format jobs to match the dictionaries the template expects
     jobs = []
-    for job in available_jobs:
+    for job in available_jobs_data:
+        job_description_full = f"{job.title} {job.description} {job.required_skills} {job.tags or ''}"
+        match_score = match_resume_to_job(resume_text, job_description_full) if resume_text else 0
+        
+        # Calculate ATS score for the top match (demonstration)
+        ats_data = calculate_ats_score(resume_text, job_description_full) if resume_text else {}
+
         job_data = {
             "id": job.id,
             "title": job.title,
@@ -197,14 +225,22 @@ def seeker_dashboard():
             "logo_path": job.company.logo_path,
             "location": job.location,
             "job_type": job.job_type,
+            "job_location_type": job.job_location_type,
+            "experience_level": job.experience_level,
             "salary": job.salary,
+            "max_salary": job.max_salary,
+            "is_boosted": job.is_boosted,
             "description": job.description,
             "required_skills": job.required_skills,
-            "match_score": match_resume_to_job(resume_text, f"{job.description} {job.required_skills}") if resume_text else 0
+            "match_score": match_score,
+            "ats_score": ats_data.get("score", 0) if ats_data else 0,
+            "ats_findings": ats_data.get("findings", []) if ats_data else [],
+            "missing_skills": ats_data.get("missing_skills", [])
         }
         jobs.append(job_data)
 
-    jobs.sort(key=lambda x: x["match_score"], reverse=True)
+    # Final Sort: Match Score then Boosted
+    jobs.sort(key=lambda x: (x["is_boosted"], x["match_score"]), reverse=True)
 
     # Fetch applied jobs
     swipes = JobSwipe.query.filter_by(seeker_id=session["seeker_id"], direction='right').order_by(JobSwipe.created_at.desc()).all()
@@ -217,7 +253,7 @@ def seeker_dashboard():
             "status": s.status
         })
 
-    return render_template("seeker_dashboard.html", seeker=seeker, jobs=jobs, applications=applications)
+    return render_template("seeker_dashboard.html", seeker=seeker, jobs=jobs, applications=applications, keywords=keywords)
 
 @app.route("/swipe", methods=["POST"])
 def swipe():
@@ -228,21 +264,32 @@ def swipe():
     job_id = data.get("job_id")
     direction = data.get("direction")
 
+    # Duplicate check (Fraud/Spam prevention)
     if JobSwipe.query.filter_by(seeker_id=session["seeker_id"], job_id=job_id).first():
         return jsonify({"status": "already_swiped"})
+
+    seeker = Seeker.query.get(session["seeker_id"])
+    job = JobListing.query.get(job_id)
+    
+    # Calculate scores for persistence
+    resume_text = parse_resume(seeker.resume_path) if seeker.resume_path and os.path.exists(seeker.resume_path) else ""
+    job_full_text = f"{job.title} {job.description} {job.required_skills}"
+    m_score = match_resume_to_job(resume_text, job_full_text) if resume_text else 0
+    a_score = calculate_ats_score(resume_text, job_full_text).get("score", 0) if resume_text else 0
 
     new_swipe = JobSwipe(
         seeker_id=session["seeker_id"],
         job_id=job_id,
         direction=direction,
-        status='pending'
+        status='pending',
+        match_score=float(m_score),
+        ats_score=float(a_score),
+        ai_rank_score=float(m_score * 0.7 + a_score * 0.3)
     )
     db.session.add(new_swipe)
     db.session.commit()
 
     if direction == "right":
-        seeker = Seeker.query.get(session["seeker_id"])
-        job = JobListing.query.get(job_id)
         if job and job.company:
             try:
                 send_application_emails(
@@ -252,7 +299,7 @@ def swipe():
                 )
             except: pass
 
-    return jsonify({"status": "ok", "direction": direction})
+    return jsonify({"status": "ok", "direction": direction, "match_score": m_score})
 
 @app.route("/profile/seeker", methods=["GET", "POST"])
 def edit_seeker_profile():
@@ -316,7 +363,9 @@ def company_dashboard():
             "job_title": sw.job_listing.title,
             "applied_at": sw.created_at,
             "status": sw.status,
-            "swipe_id": sw.id
+            "swipe_id": sw.id,
+            "match_score": sw.match_score,
+            "ats_score": sw.ats_score
         })
 
     return render_template("company_dashboard.html", company=company, jobs=jobs, applicants=applicants)
@@ -334,7 +383,12 @@ def post_job():
             required_skills=request.form.get("required_skills", ""),
             location=request.form.get("location", ""),
             job_type=request.form.get("job_type", "Full-time"),
-            salary=request.form.get("salary", "")
+            job_location_type=request.form.get("job_location_type", "Onsite"),
+            experience_level=request.form.get("experience_level", "Entry Level"),
+            min_experience=request.form.get("min_experience", 0, type=int),
+            salary=request.form.get("salary", ""),
+            max_salary=request.form.get("max_salary", 0, type=int),
+            tags=request.form.get("tags", "")
         )
         db.session.add(new_job)
         db.session.commit()
@@ -356,17 +410,35 @@ def update_applicant(swipe_id, action):
         flash("Unauthorized action.", "error")
         return redirect(url_for("company_dashboard"))
         
-    swipe.status = action + "ed"
+    if action == "shortlist":
+        swipe.status = "shortlisted"
+    elif action == "interview":
+        swipe.status = "interview"
+    else:
+        swipe.status = action + "ed"
     db.session.commit()
     
     seeker = swipe.seeker
     job = swipe.job_listing
-    msg = Message(f"Application Update: {job.title}", recipients=[seeker.email])
-    msg.html = f"<p>Hi {seeker.first_name}, your application for {job.title} was {action}ed.</p>"
+    
+    # Enhanced Notification
+    action_text = action
+    if action == "shortlist": action_text = "shortlisted"
+    elif action == "interview": action_text = "invited for an interview"
+    else: action_text = f"{action}ed"
+    
+    msg = Message(f"Update on your application: {job.title}", recipients=[seeker.email])
+    msg.html = f"""
+    <div style="font-family:sans-serif;max-width:500px;margin:auto;border:1px solid #eee;padding:20px;border-radius:12px">
+      <h2 style="color:#ff2e63">CareerSwipe</h2>
+      <p>Hi <b>{seeker.first_name}</b>,</p>
+      <p>Your application for <b>{job.title}</b> at <b>{job.company.company_name}</b> has been <b>{action_text}</b>.</p>
+      <p>Login to your dashboard to see more details.</p>
+    </div>"""
     try: mail.send(msg)
     except: pass
     
-    flash(f"Applicant {action}ed.", "success")
+    flash(f"Applicant {action_text}.", "success")
     return redirect(url_for("company_dashboard"))
 
 if __name__ == "__main__":

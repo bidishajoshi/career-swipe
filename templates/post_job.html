@@ -29,9 +29,42 @@
           </select>
         </div>
       </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Experience level</label>
+          <select name="experience_level">
+            <option>Entry Level</option>
+            <option>Mid Level</option>
+            <option>Senior Level</option>
+            <option>Expert</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Min Experience (years)</label>
+          <input type="number" name="min_experience" value="0">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Salary Display</label>
+          <input type="text" name="salary" placeholder="e.g. NPR 60,000">
+        </div>
+        <div class="field">
+          <label>Max Salary (Numerical)</label>
+          <input type="number" name="max_salary" placeholder="e.g. 90000">
+        </div>
+      </div>
       <div class="field">
-        <label>Salary range <span class="opt-label">(optional)</span></label>
-        <input type="text" name="salary" placeholder="e.g. NPR 60,000 – 90,000">
+        <label>Location Type</label>
+        <select name="job_location_type">
+          <option>Onsite</option>
+          <option>Remote</option>
+          <option>Hybrid</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tags (Skills, comma separated)</label>
+        <input type="text" name="tags" placeholder="Python, Flask, AI">
       </div>
       <div class="field">
         <label>Job description</label>

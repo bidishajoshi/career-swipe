@@ -2,6 +2,15 @@
 {% block title %}Dashboard – CareerSwipe{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/swipe.css') }}">
+<style>
+  .boost-badge {
+    font-size: 10px; background: linear-gradient(135deg, #ffd700, #ffa500); 
+    color: #fff; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px;
+  }
+  .missing-skills-tooltip {
+    font-size: 0.85rem; color: #d9534f; margin-top: 10px; font-style: italic;
+  }
+</style>
 {% endblock %}
 {% block content %}
 <div class="dash-wrap">
@@ -23,6 +32,17 @@
       <a href="{{ url_for('edit_seeker_profile') }}">✏️ Edit Profile</a>
       <a href="{{ url_for('logout') }}">🚪 Logout</a>
     </nav>
+    
+    {% if keywords %}
+    <div class="sidebar-skills">
+      <div class="sidebar-label">Extracted Keywords</div>
+      {% for kw in keywords %}
+        <span class="skill-pill seeker-pill" style="opacity: 0.8">{{ kw }}</span>
+      {% endfor %}
+      <div class="algo-notice">AI extracted from your resume</div>
+    </div>
+    {% endif %}
+
     {% if seeker.skills %}
     <div class="sidebar-skills">
       <div class="sidebar-label">Your skills</div>
@@ -43,6 +63,29 @@
         <span class="job-count">{{ jobs|length }} available</span>
       </div>
 
+      <!-- Filters -->
+      <div class="filters-bar">
+        <form method="GET" action="{{ url_for('seeker_dashboard') }}" class="filter-form">
+          <select name="job_type" class="filter-select">
+            <option value="">Job Type (Any)</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+          </select>
+          <select name="location_type" class="filter-select">
+            <option value="">Loc. Type (Any)</option>
+            <option value="Onsite">Onsite</option>
+            <option value="Remote">Remote</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
+          <input type="number" name="min_salary" placeholder="Min Salary" class="filter-input" style="max-width: 100px">
+          <input type="text" name="location" placeholder="City" class="filter-input">
+          <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+          <a href="{{ url_for('seeker_dashboard') }}" class="btn btn-outline-dark btn-sm">Clear</a>
+        </form>
+      </div>
+
       {% if jobs %}
       <div class="swipe-container">
       <div class="swipe-arena">
@@ -56,19 +99,27 @@
                 <div class="jc-logo-placeholder">{{ job.company_name[0] }}</div>
               {% endif %}
               <div>
-                <h3>{{ job.title }}</h3>
+                <h3>{{ job.title }} {% if job.is_boosted %}<span class="boost-badge">PRO</span>{% endif %}</h3>
                 <span class="jc-company">{{ job.company_name }}</span>
               </div>
-              {% if job.match_score > 0 %}
-              <div class="match-badge {% if job.match_score >= 60 %}match-high{% elif job.match_score >= 35 %}match-mid{% else %}match-low{% endif %}">
-                {{ job.match_score }}% match
+              <div class="scores-wrap">
+                {% if job.match_score > 0 %}
+                <div class="score-circle match-high" style="--score: {{ job.match_score }}%" data-tooltip="AI Match Score">
+                  <span class="score-val">{{ job.match_score }}%</span>
+                </div>
+                {% endif %}
+                {% if job.ats_score > 0 %}
+                <div class="score-circle ats-score" style="--score: {{ job.ats_score }}%" data-tooltip="ATS Compatibility">
+                  <span class="score-val">{{ job.ats_score }}</span>
+                </div>
+                {% endif %}
               </div>
-              {% endif %}
             </div>
 
             <div class="jc-meta">
               {% if job.location %}<span>📍 {{ job.location }}</span>{% endif %}
-              {% if job.job_type %}<span>⏱ {{ job.job_type }}</span>{% endif %}
+              <span>🏠 {{ job.job_location_type }}</span>
+              <span>⏱ {{ job.job_type }}</span>
               {% if job.salary %}<span>💰 {{ job.salary }}</span>{% endif %}
             </div>
 
@@ -77,10 +128,24 @@
             {% if job.required_skills %}
             <div class="jc-skills">
               {% for sk in job.required_skills.split(',')[:6] %}
-                <span class="skill-pill seeker-pill">{{ sk.strip() }}</span>
+                <span class="skill-pill seeker-pill">{{ sk.strip()|capitalize }}</span>
               {% endfor %}
             </div>
             {% endif %}
+
+            <!-- ATS Feedback -->
+            <div class="ats-peek">
+              <div class="sidebar-label">Skill Gap Detection</div>
+              {% if job.missing_skills %}
+              <div class="missing-skills-tooltip">Missing: {{ job.missing_skills[:4]|join(', ') }}</div>
+              {% endif %}
+              <div class="sidebar-label" style="margin-top:8px">ATS Suggestions</div>
+              <ul>
+                {% for finding in job.ats_findings[:2] %}
+                <li>{{ finding }}</li>
+                {% endfor %}
+              </ul>
+            </div>
 
             <div class="swipe-hint">
               <span class="hint-left">← Skip</span>
