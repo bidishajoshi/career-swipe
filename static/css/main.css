@@ -19,11 +19,19 @@
 
 body {
   font-family: 'Outfit', sans-serif;
-  background: radial-gradient(circle at top right, #f8fafc, #f1f5f9);
+  background: linear-gradient(-45deg, #f8fafc, #f1f5f9, #e2e8f0, #f8fafc);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ── Navbar ─────────────────────────────────────────────────────────────── */

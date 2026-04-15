@@ -20,17 +20,42 @@
   width: 100%;
   height: 100%;
   background: #ffffff;
-  border: 1px solid #e5e5ea;
-  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 32px;
   padding: 0;
   overflow: hidden;
   cursor: grab;
-  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2), box-shadow 0.3s ease;
   user-select: none;
   will-change: transform;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.06), 0 2px 10px rgba(0,0,0,0.02);
   display: flex;
   flex-direction: column;
+}
+
+.job-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
+  transform: rotate(-20deg);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.job-card:hover {
+  transform: translateY(-12px) scale(1.03) !important;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+  z-index: 100 !important;
+}
+
+.job-card:hover::before {
+  transform: rotate(-20deg) translate(20%, 20%);
+}
+
+.job-card:hover .jc-full-bg {
+  transform: scale(1.1);
 }
 .job-card:active { cursor: grabbing; }
 
@@ -60,11 +85,16 @@
   background: #f0f0f5;
   overflow: hidden;
 }
-.jc-full-bg, .jc-full-bg-placeholder {
+.jc-full-bg {
   width: 100%; height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.jc-full-bg-placeholder {
+  width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   font-family: 'Syne', sans-serif; font-size: 5rem; font-weight: 800; color: #fff;
+  transition: transform 0.5s ease;
 }
 .jc-gradient-overlay {
   position: absolute; bottom: 0; left: 0; width: 100%; height: 60%;
