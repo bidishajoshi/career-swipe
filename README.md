@@ -64,7 +64,7 @@ pip install -r requirements.txt
 ### 4. Set up MySQL
 
 ```bash
-mysql -u root -p < schema.sql
+sqlite3 database.db < schema.sql
 ```
 
 This creates the `careerswipe` database and all required tables.
