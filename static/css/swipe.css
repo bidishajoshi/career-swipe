@@ -13,6 +13,13 @@
   touch-action: pan-y;
 }
 
+@media (max-width: 480px) {
+  .swipe-arena { max-width: 90vw; }
+  .swipe-stack { height: 500px; }
+  .jc-info h3 { font-size: 1.1rem; }
+  .jc-description-fold { -webkit-line-clamp: 3; }
+}
+
 /* Each job card in the stack */
 .job-card {
   position: absolute;
