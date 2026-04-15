@@ -1,6 +1,7 @@
 from extensions import db
 from datetime import datetime
 
+
 class Seeker(db.Model):
     __tablename__ = 'seekers'
     
@@ -14,11 +15,28 @@ class Seeker(db.Model):
     experience = db.Column(db.Text)
     skills = db.Column(db.Text)
     resume_path = db.Column(db.String(500))
+
+    # ✅ NEW JOB-PORTAL / INDEED STYLE FIELDS
+    gender = db.Column(db.String(20))
+    dob = db.Column(db.String(20))
+
+    experience_type = db.Column(db.String(50))      # fresher / experienced
+    career_field = db.Column(db.String(100))        # IT / Marketing / Finance etc
+    job_status = db.Column(db.String(50))           # searching / employed / open to offers
+    job_location_type = db.Column(db.String(50))    # remote / onsite / hybrid
+    shift = db.Column(db.String(50))                # day / night / flexible
+
     verification_token = db.Column(db.String(100))
     is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    swipes = db.relationship('JobSwipe', backref='seeker', lazy=True, cascade='all, delete-orphan')
+
+    swipes = db.relationship(
+        'JobSwipe',
+        backref='seeker',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
 
 class Company(db.Model):
     __tablename__ = 'companies'
@@ -34,14 +52,24 @@ class Company(db.Model):
     verification_token = db.Column(db.String(100))
     is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    jobs = db.relationship('JobListing', backref='company', lazy=True, cascade='all, delete-orphan')
+
+    jobs = db.relationship(
+        'JobListing',
+        backref='company',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
 
 class JobListing(db.Model):
     __tablename__ = 'job_listings'
     
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id', ondelete='CASCADE'), nullable=False)
+    company_id = db.Column(
+        db.Integer,
+        db.ForeignKey('companies.id', ondelete='CASCADE'),
+        nullable=False
+    )
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=False)
     required_skills = db.Column(db.Text)
@@ -49,15 +77,29 @@ class JobListing(db.Model):
     job_type = db.Column(db.String(50), default='Full-time')
     salary = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    swipes = db.relationship('JobSwipe', backref='job_listing', lazy=True, cascade='all, delete-orphan')
+
+    swipes = db.relationship(
+        'JobSwipe',
+        backref='job_listing',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
 
 class JobSwipe(db.Model):
     __tablename__ = 'job_swipes'
     
     id = db.Column(db.Integer, primary_key=True)
-    seeker_id = db.Column(db.Integer, db.ForeignKey('seekers.id', ondelete='CASCADE'), nullable=False)
-    job_id = db.Column(db.Integer, db.ForeignKey('job_listings.id', ondelete='CASCADE'), nullable=False)
-    direction = db.Column(db.String(10), nullable=False) # 'left' or 'right'
-    status = db.Column(db.String(20), default='pending') # 'pending', 'accepted', 'rejected'
+    seeker_id = db.Column(
+        db.Integer,
+        db.ForeignKey('seekers.id', ondelete='CASCADE'),
+        nullable=False
+    )
+    job_id = db.Column(
+        db.Integer,
+        db.ForeignKey('job_listings.id', ondelete='CASCADE'),
+        nullable=False
+    )
+    direction = db.Column(db.String(10), nullable=False)  # left / right
+    status = db.Column(db.String(20), default='pending')   # pending / accepted / rejected
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
