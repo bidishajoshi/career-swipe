@@ -52,7 +52,7 @@ cd careerswipe
 
 ```bash
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+source venv\Scripts\Activate       # Windows: venv\Scripts\activate
 ```
 
 ### 3. Install dependencies
