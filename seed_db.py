@@ -1,18 +1,18 @@
 from app import app
 from extensions import db
-from models import Company, JobListing, Seeker
+from models import Company, JobListing, Seeker, JobSwipe
 from werkzeug.security import generate_password_hash
 
 def seed():
     with app.app_context():
-        print("🧹 Clearing old data...")
+        print("Clearing old data...")
         JobSwipe.query.delete()
         JobListing.query.delete()
         Seeker.query.delete()
         Company.query.delete()
         db.session.commit()
 
-        print("🌱 Seeding database with premium fake data...")
+        print("Seeding database with premium fake data...")
 
         # Create test companies
         password = generate_password_hash("password123")
@@ -88,7 +88,7 @@ def seed():
             db.session.add(job)
         
         db.session.commit()
-        print("\n✅ SUCCESS!")
+        print("\nSUCCESS!")
         print(f"Created 2 Companies (Google, Meta)")
         print(f"Created 3 Job Listings")
         print("\n------------------------------------------------")
