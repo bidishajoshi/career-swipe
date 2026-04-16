@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_mail import Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import HTTPException
 
 from config import Config
 from extensions import db, migrate, mail
@@ -21,44 +22,75 @@ db.init_app(app)
 migrate.init_app(app, db)
 mail.init_app(app)
 
-from werkzeug.exceptions import HTTPException
+# Ensure tables are created (especially for local SQLite)
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Note: Database creation skipped or failed: {e}")
 
+
+# ── Error Handlers ────────────────────────────────────────────────────────────
 @app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
         return e
     import traceback
     traceback.print_exc()
-    return "Internal Server Error - check terminal", 500
+    return render_template("error.html", error=str(e)), 500
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("error.html", error="Page not found (404)"), 404
+
 
 os.makedirs(app.config["RESUME_FOLDER"], exist_ok=True)
 os.makedirs(app.config["LOGO_FOLDER"], exist_ok=True)
 
 ALLOWED_RESUME = {"pdf", "doc", "docx"}
-ALLOWED_LOGO   = {"png", "jpg", "jpeg"}
+ALLOWED_LOGO   = {"png", "jpg", "jpeg", "webp"}
+
 
 def allowed_file(filename, allowed):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed
 
-# ── Email Helpers ────────────────────────────────────────────────────────────
+
+# ── Email Helpers ─────────────────────────────────────────────────────────────
 def send_application_emails(seeker_email, seeker_name, company_email, company_name, job_title, resume_path):
+    """Send application notification emails to both company and seeker."""
     # To Company
     msg1 = Message(f"New applicant for {job_title}", recipients=[company_email])
     msg1.html = f"""
-    <div style="font-family:sans-serif;max-width:480px;margin:auto">
-      <h2 style="color:#00c896">CareerSwipe</h2>
-      <p><b>{seeker_name}</b> has applied for <b>{job_title}</b>.</p>
-      <p>Resume is attached.</p>
+    <div style="font-family:sans-serif;max-width:520px;margin:auto;background:#0f172a;padding:2rem;border-radius:16px;color:#fff">
+      <h2 style="color:#3b82f6;margin-bottom:0.5rem">CareerSwipe</h2>
+      <p style="color:#94a3b8;margin-bottom:1.5rem">New Application Received</p>
+      <p><b style="color:#fff">{seeker_name}</b> <span style="color:#94a3b8">has applied for</span> <b style="color:#3b82f6">{job_title}</b></p>
+      <p style="color:#94a3b8;margin-top:1rem">Resume is attached to this email.</p>
+      <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;color:#64748b">
+        CareerSwipe · Smart Job Matching
+      </div>
     </div>"""
     if resume_path and os.path.exists(resume_path):
-        with app.open_resource(resume_path) as fp:
+        with open(resume_path, "rb") as fp:
             msg1.attach(os.path.basename(resume_path), "application/octet-stream", fp.read())
-    mail.send(msg1)
+    try:
+        mail.send(msg1)
+    except Exception:
+        pass
 
     # To Seeker
     msg2 = Message(f"Application sent to {company_name}", recipients=[seeker_email])
-    msg2.html = f"<h2>CareerSwipe</h2><p>Your application for <b>{job_title}</b> was sent!</p>"
-    mail.send(msg2)
+    msg2.html = f"""
+    <div style="font-family:sans-serif;max-width:520px;margin:auto;background:#0f172a;padding:2rem;border-radius:16px;color:#fff">
+      <h2 style="color:#3b82f6">CareerSwipe</h2>
+      <p style="color:#94a3b8">Application Confirmation</p>
+      <p>Your application for <b style="color:#3b82f6">{job_title}</b> at <b style="color:#fff">{company_name}</b> was sent successfully! ✅</p>
+    </div>"""
+    try:
+        mail.send(msg2)
+    except Exception:
+        pass
+
 
 # ════════════════════════════════════════════════════════════════════════════
 #  AUTH ROUTES
@@ -67,18 +99,19 @@ def send_application_emails(seeker_email, seeker_name, company_email, company_na
 def index():
     return render_template("index.html")
 
+
 @app.route("/register/seeker", methods=["GET", "POST"])
 def register_seeker():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
-        
+
         if Seeker.query.filter_by(email=email).first():
             flash("Email already registered.", "error")
             return redirect(url_for("register_seeker"))
 
         resume_file = request.files.get("resume")
         resume_path = ""
-        if resume_file and allowed_file(resume_file.filename, ALLOWED_RESUME):
+        if resume_file and resume_file.filename and allowed_file(resume_file.filename, ALLOWED_RESUME):
             fname = secure_filename(f"{uuid.uuid4()}_{resume_file.filename}")
             resume_path = os.path.join(app.config["RESUME_FOLDER"], fname)
             resume_file.save(resume_path)
@@ -97,10 +130,11 @@ def register_seeker():
         )
         db.session.add(new_seeker)
         db.session.commit()
-        
+
         flash("Account created! You can log in now.", "success")
         return redirect(url_for("login_seeker"))
     return render_template("register_seeker.html")
+
 
 @app.route("/register/company", methods=["GET", "POST"])
 def register_company():
@@ -113,7 +147,7 @@ def register_company():
 
         logo_file = request.files.get("logo")
         logo_path = ""
-        if logo_file and allowed_file(logo_file.filename, ALLOWED_LOGO):
+        if logo_file and logo_file.filename and allowed_file(logo_file.filename, ALLOWED_LOGO):
             fname = secure_filename(f"{uuid.uuid4()}_{logo_file.filename}")
             logo_path = os.path.join(app.config["LOGO_FOLDER"], fname)
             logo_file.save(logo_path)
@@ -130,17 +164,18 @@ def register_company():
         )
         db.session.add(new_company)
         db.session.commit()
-        
+
         flash("Company registered!", "success")
         return redirect(url_for("login_company"))
     return render_template("register_company.html")
+
 
 @app.route("/login/seeker", methods=["GET", "POST"])
 def login_seeker():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
         user = Seeker.query.filter_by(email=email).first()
-        
+
         if user and check_password_hash(user.password_hash, request.form["password"]):
             session["seeker_id"] = user.id
             session["seeker_name"] = user.first_name
@@ -148,12 +183,13 @@ def login_seeker():
         flash("Invalid email or password.", "error")
     return render_template("login_seeker.html")
 
+
 @app.route("/login/company", methods=["GET", "POST"])
 def login_company():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
         co = Company.query.filter_by(email=email).first()
-        
+
         if co and check_password_hash(co.password_hash, request.form["password"]):
             session["company_id"] = co.id
             session["company_name"] = co.company_name
@@ -161,10 +197,12 @@ def login_company():
         flash("Invalid email or password.", "error")
     return render_template("login_company.html")
 
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("index"))
+
 
 # ════════════════════════════════════════════════════════════════════════════
 #  SEEKER FEATURES
@@ -173,25 +211,24 @@ def logout():
 def seeker_dashboard():
     if "seeker_id" not in session:
         return redirect(url_for("login_seeker"))
-        
-    seeker = Seeker.query.get(session["seeker_id"])
+
+    seeker = db.session.get(Seeker, session["seeker_id"])
     if not seeker:
         session.clear()
         return redirect(url_for("login_seeker"))
 
     swiped_job_ids = [swipe.job_id for swipe in seeker.swipes]
-    
+
     # ── Indeed-style Filters ──
-    job_type = request.args.get('job_type')
-    exp_level = request.args.get('experience_level')
-    location_type = request.args.get('location_type') # remote/hybrid/onsite
-    location = request.args.get('location')
-    min_sal = request.args.get('min_salary', type=int)
-    
+    job_type      = request.args.get("job_type")
+    exp_level     = request.args.get("experience_level")
+    location_type = request.args.get("location_type")
+    location      = request.args.get("location")
+    min_sal       = request.args.get("min_salary", type=int)
+
     query = JobListing.query
     if swiped_job_ids:
         query = query.filter(~JobListing.id.in_(swiped_job_ids))
-    
     if job_type:
         query = query.filter(JobListing.job_type == job_type)
     if exp_level:
@@ -199,79 +236,97 @@ def seeker_dashboard():
     if location_type:
         query = query.filter(JobListing.job_location_type == location_type)
     if location:
-        query = query.filter(JobListing.location.ilike(f'%{location}%'))
+        query = query.filter(JobListing.location.ilike(f"%{location}%"))
     if min_sal:
         query = query.filter(JobListing.max_salary >= min_sal)
 
-    # Smart Ranking Logic: Priority to Boosted Jobs and high Match Score
-    available_jobs_data = query.order_by(JobListing.is_boosted.desc(), JobListing.created_at.desc()).limit(50).all()
+    available_jobs_data = (
+        query.order_by(JobListing.is_boosted.desc(), JobListing.created_at.desc())
+        .limit(50)
+        .all()
+    )
 
-    resume_text = parse_resume(seeker.resume_path) if seeker.resume_path and os.path.exists(seeker.resume_path) else ""
+    resume_text = ""
+    if seeker.resume_path and os.path.exists(seeker.resume_path):
+        resume_text = parse_resume(seeker.resume_path)
     keywords = extract_keywords(resume_text) if resume_text else []
-    
-    # Format jobs to match the dictionaries the template expects
+
     jobs = []
     for job in available_jobs_data:
-        job_description_full = f"{job.title} {job.description} {job.required_skills} {job.tags or ''}"
-        match_score = match_resume_to_job(resume_text, job_description_full) if resume_text else 0
-        
-        # Calculate ATS score for the top match (demonstration)
-        ats_data = calculate_ats_score(resume_text, job_description_full) if resume_text else {}
+        job_desc_full = f"{job.title} {job.description} {job.required_skills} {job.tags or ''}"
+        match_score   = match_resume_to_job(resume_text, job_desc_full) if resume_text else 0
+        ats_data      = calculate_ats_score(resume_text, job_desc_full) if resume_text else {}
 
-        job_data = {
-            "id": job.id,
-            "title": job.title,
-            "company_name": job.company.company_name,
-            "logo_path": job.company.logo_path,
-            "location": job.location,
-            "job_type": job.job_type,
+        jobs.append({
+            "id":               job.id,
+            "title":            job.title,
+            "company_name":     job.company.company_name,
+            "logo_path":        job.company.logo_path,
+            "location":         job.location,
+            "job_type":         job.job_type,
             "job_location_type": job.job_location_type,
             "experience_level": job.experience_level,
-            "salary": job.salary,
-            "max_salary": job.max_salary,
-            "is_boosted": job.is_boosted,
-            "description": job.description,
-            "required_skills": job.required_skills,
-            "match_score": match_score,
-            "ats_score": ats_data.get("score", 0) if ats_data else 0,
-            "ats_findings": ats_data.get("findings", []) if ats_data else []
-        }
-        jobs.append(job_data)
+            "salary":           job.salary,
+            "max_salary":       job.max_salary,
+            "is_boosted":       job.is_boosted,
+            "description":      job.description,
+            "required_skills":  job.required_skills,
+            "match_score":      match_score,
+            "ats_score":        ats_data.get("score", 0) if ats_data else 0,
+            "ats_findings":     ats_data.get("findings", []) if ats_data else [],
+        })
 
-    # Final Sort: Match Score then Boosted
     jobs.sort(key=lambda x: (x["is_boosted"], x["match_score"]), reverse=True)
 
     # Fetch applied jobs
-    swipes = JobSwipe.query.filter_by(seeker_id=session["seeker_id"], direction='right').order_by(JobSwipe.created_at.desc()).all()
-    applications = []
-    for s in swipes:
-        applications.append({
-            "title": s.job_listing.title,
+    swipes = (
+        JobSwipe.query
+        .filter_by(seeker_id=session["seeker_id"], direction="right")
+        .order_by(JobSwipe.created_at.desc())
+        .all()
+    )
+    applications = [
+        {
+            "title":        s.job_listing.title,
             "company_name": s.job_listing.company.company_name,
-            "applied_at": s.created_at,
-            "status": s.status
-        })
+            "applied_at":   s.created_at,
+            "status":       s.status,
+        }
+        for s in swipes
+    ]
 
-    return render_template("seeker_dashboard.html", seeker=seeker, jobs=jobs, applications=applications, keywords=keywords)
+    return render_template(
+        "seeker_dashboard.html",
+        seeker=seeker,
+        jobs=jobs,
+        applications=applications,
+        keywords=keywords,
+    )
+
 
 @app.route("/swipe", methods=["POST"])
 def swipe():
     if "seeker_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
-    
-    data = request.get_json()
-    job_id = data.get("job_id")
+
+    data      = request.get_json()
+    job_id    = data.get("job_id")
     direction = data.get("direction")
 
-    # Duplicate check (Fraud/Spam prevention)
+    if not job_id or direction not in ("left", "right"):
+        return jsonify({"error": "Invalid data"}), 400
+
+    # Duplicate check
     if JobSwipe.query.filter_by(seeker_id=session["seeker_id"], job_id=job_id).first():
         return jsonify({"status": "already_swiped"})
 
-    seeker = Seeker.query.get(session["seeker_id"])
-    job = JobListing.query.get(job_id)
-    
-    # Calculate scores for persistence
-    resume_text = parse_resume(seeker.resume_path) if seeker.resume_path and os.path.exists(seeker.resume_path) else ""
+    seeker = db.session.get(Seeker, session["seeker_id"])
+    job    = db.session.get(JobListing, job_id)
+
+    if not seeker or not job:
+        return jsonify({"error": "Not found"}), 404
+
+    resume_text   = parse_resume(seeker.resume_path) if seeker.resume_path and os.path.exists(seeker.resume_path) else ""
     job_full_text = f"{job.title} {job.description} {job.required_skills}"
     m_score = match_resume_to_job(resume_text, job_full_text) if resume_text else 0
     a_score = calculate_ats_score(resume_text, job_full_text).get("score", 0) if resume_text else 0
@@ -280,54 +335,56 @@ def swipe():
         seeker_id=session["seeker_id"],
         job_id=job_id,
         direction=direction,
-        status='pending',
+        status="pending",
         match_score=float(m_score),
         ats_score=float(a_score),
-        ai_rank_score=float(m_score * 0.7 + a_score * 0.3)
+        ai_rank_score=float(m_score * 0.7 + a_score * 0.3),
     )
     db.session.add(new_swipe)
     db.session.commit()
 
-    if direction == "right":
-        if job and job.company:
-            try:
-                send_application_emails(
-                    seeker.email, f"{seeker.first_name} {seeker.last_name}", 
-                    job.company.email, job.company.company_name, 
-                    job.title, seeker.resume_path
-                )
-            except: pass
+    if direction == "right" and job.company:
+        send_application_emails(
+            seeker.email,
+            f"{seeker.first_name} {seeker.last_name}",
+            job.company.email,
+            job.company.company_name,
+            job.title,
+            seeker.resume_path,
+        )
 
     return jsonify({"status": "ok", "direction": direction, "match_score": m_score})
+
 
 @app.route("/profile/seeker", methods=["GET", "POST"])
 def edit_seeker_profile():
     if "seeker_id" not in session:
         return redirect(url_for("login_seeker"))
 
-    seeker = Seeker.query.get(session["seeker_id"])
+    seeker = db.session.get(Seeker, session["seeker_id"])
 
     if request.method == "POST":
         resume_file = request.files.get("resume")
         resume_path = request.form.get("existing_resume", "")
-        if resume_file and allowed_file(resume_file.filename, ALLOWED_RESUME):
+        if resume_file and resume_file.filename and allowed_file(resume_file.filename, ALLOWED_RESUME):
             fname = secure_filename(f"{uuid.uuid4()}_{resume_file.filename}")
             resume_path = os.path.join(app.config["RESUME_FOLDER"], fname)
             resume_file.save(resume_path)
 
         seeker.first_name = request.form["first_name"]
-        seeker.last_name = request.form["last_name"]
-        seeker.phone = request.form.get("phone", "")
-        seeker.education = request.form.get("education", "")
+        seeker.last_name  = request.form["last_name"]
+        seeker.phone      = request.form.get("phone", "")
+        seeker.education  = request.form.get("education", "")
         seeker.experience = request.form.get("experience", "")
-        seeker.skills = request.form.get("skills", "")
+        seeker.skills     = request.form.get("skills", "")
         seeker.resume_path = resume_path
-        
+
         db.session.commit()
         flash("Profile updated!", "success")
         return redirect(url_for("seeker_dashboard"))
 
     return render_template("edit_seeker_profile.html", seeker=seeker)
+
 
 # ════════════════════════════════════════════════════════════════════════════
 #  COMPANY FEATURES
@@ -336,44 +393,60 @@ def edit_seeker_profile():
 def company_dashboard():
     if "company_id" not in session:
         return redirect(url_for("login_company"))
-        
-    company = Company.query.get(session["company_id"])
+
+    company = db.session.get(Company, session["company_id"])
     if not company:
         session.clear()
         return redirect(url_for("login_company"))
 
-    jobs = JobListing.query.filter_by(company_id=session["company_id"]).order_by(JobListing.created_at.desc()).all()
-    
-    # Applicants to this company's jobs
-    swipes = JobSwipe.query.join(JobListing).filter(
-        JobListing.company_id == session["company_id"],
-        JobSwipe.direction == 'right'
-    ).order_by(JobSwipe.created_at.desc()).all()
-    
-    applicants = []
-    for sw in swipes:
-        applicants.append({
-            "seeker_id": sw.seeker.id,
-            "first_name": sw.seeker.first_name,
-            "last_name": sw.seeker.last_name,
-            "email": sw.seeker.email,
-            "skills": sw.seeker.skills,
-            "resume_path": sw.seeker.resume_path,
-            "job_title": sw.job_listing.title,
-            "applied_at": sw.created_at,
-            "status": sw.status,
-            "swipe_id": sw.id,
-            "match_score": sw.match_score,
-            "ats_score": sw.ats_score
-        })
+    jobs = (
+        JobListing.query
+        .filter_by(company_id=session["company_id"])
+        .order_by(JobListing.created_at.desc())
+        .all()
+    )
 
-    return render_template("company_dashboard.html", company=company, jobs=jobs, applicants=applicants)
+    swipes = (
+        JobSwipe.query.join(JobListing)
+        .filter(
+            JobListing.company_id == session["company_id"],
+            JobSwipe.direction == "right",
+        )
+        .order_by(JobSwipe.created_at.desc())
+        .all()
+    )
+
+    applicants = [
+        {
+            "seeker_id":   sw.seeker.id,
+            "first_name":  sw.seeker.first_name,
+            "last_name":   sw.seeker.last_name,
+            "email":       sw.seeker.email,
+            "skills":      sw.seeker.skills,
+            "resume_path": sw.seeker.resume_path,
+            "job_title":   sw.job_listing.title,
+            "applied_at":  sw.created_at,
+            "status":      sw.status,
+            "swipe_id":    sw.id,
+            "match_score": sw.match_score,
+            "ats_score":   sw.ats_score,
+        }
+        for sw in swipes
+    ]
+
+    return render_template(
+        "company_dashboard.html",
+        company=company,
+        jobs=jobs,
+        applicants=applicants,
+    )
+
 
 @app.route("/jobs/post", methods=["GET", "POST"])
 def post_job():
     if "company_id" not in session:
         return redirect(url_for("login_company"))
-        
+
     if request.method == "POST":
         new_job = JobListing(
             company_id=session["company_id"],
@@ -387,58 +460,54 @@ def post_job():
             min_experience=request.form.get("min_experience", 0, type=int),
             salary=request.form.get("salary", ""),
             max_salary=request.form.get("max_salary", 0, type=int),
-            tags=request.form.get("tags", "")
+            tags=request.form.get("tags", ""),
         )
         db.session.add(new_job)
         db.session.commit()
-        
         flash("Job posted successfully!", "success")
         return redirect(url_for("company_dashboard"))
-        
+
     return render_template("post_job.html")
+
 
 @app.route("/applicant/<int:swipe_id>/<action>")
 def update_applicant(swipe_id, action):
     if "company_id" not in session:
         return redirect(url_for("login_company"))
-        
-    swipe = JobSwipe.query.get_or_404(swipe_id)
-    
-    # Ensure this swipe belongs to a job from the logged-in company
+
+    swipe = db.session.get(JobSwipe, swipe_id)
+    if not swipe:
+        flash("Applicant not found.", "error")
+        return redirect(url_for("company_dashboard"))
+
     if swipe.job_listing.company_id != session["company_id"]:
         flash("Unauthorized action.", "error")
         return redirect(url_for("company_dashboard"))
-        
-    if action == "shortlist":
-        swipe.status = "shortlisted"
-    elif action == "interview":
-        swipe.status = "interview"
-    else:
-        swipe.status = action + "ed"
+
+    action_map = {"shortlist": "shortlisted", "interview": "interview", "accept": "accepted", "reject": "rejected"}
+    swipe.status = action_map.get(action, action + "ed")
     db.session.commit()
-    
+
     seeker = swipe.seeker
-    job = swipe.job_listing
-    
-    # Enhanced Notification
-    action_text = action
-    if action == "shortlist": action_text = "shortlisted"
-    elif action == "interview": action_text = "invited for an interview"
-    else: action_text = f"{action}ed"
-    
+    job    = swipe.job_listing
+    action_text = action_map.get(action, action + "ed")
+
     msg = Message(f"Update on your application: {job.title}", recipients=[seeker.email])
     msg.html = f"""
-    <div style="font-family:sans-serif;max-width:500px;margin:auto;border:1px solid #eee;padding:20px;border-radius:12px">
-      <h2 style="color:#ff2e63">CareerSwipe</h2>
+    <div style="font-family:sans-serif;max-width:520px;margin:auto;background:#0f172a;padding:2rem;border-radius:16px;color:#fff">
+      <h2 style="color:#3b82f6">CareerSwipe</h2>
       <p>Hi <b>{seeker.first_name}</b>,</p>
-      <p>Your application for <b>{job.title}</b> at <b>{job.company.company_name}</b> has been <b>{action_text}</b>.</p>
-      <p>Login to your dashboard to see more details.</p>
+      <p>Your application for <b style="color:#3b82f6">{job.title}</b> at <b>{job.company.company_name}</b> has been <b style="color:#10b981">{action_text}</b>.</p>
+      <p style="color:#94a3b8;margin-top:1rem">Login to your dashboard to see more details.</p>
     </div>"""
-    try: mail.send(msg)
-    except: pass
-    
+    try:
+        mail.send(msg)
+    except Exception:
+        pass
+
     flash(f"Applicant {action_text}.", "success")
     return redirect(url_for("company_dashboard"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
