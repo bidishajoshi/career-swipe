@@ -115,3 +115,15 @@ class JobSwipe(db.Model):
     ai_rank_score = db.Column(db.Float, default=0.0)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False, index=True)
+    user_type = db.Column(db.String(20), nullable=False, index=True) # 'seeker' or 'company'
+    message = db.Column(db.Text, nullable=False)
+    type = db.Column(db.String(50), default='system') # application / accepted / rejected / interview / system
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

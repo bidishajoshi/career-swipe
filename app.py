@@ -13,7 +13,7 @@ from werkzeug.exceptions import HTTPException
 
 from config import Config
 from extensions import db, migrate, mail
-from models import Seeker, Company, JobListing, JobSwipe
+from models import Seeker, Company, JobListing, JobSwipe, Notification
 from utils.tfidf import parse_resume, match_resume_to_job, extract_keywords
 from utils.ats import calculate_ats_score
 
@@ -93,6 +93,24 @@ def send_application_emails(seeker_email, seeker_name, company_email, company_na
         mail.send(msg2)
     except Exception:
         pass
+
+
+def create_notification(user_id, user_type, message, type='system'):
+    """Helper to create a notification record."""
+    try:
+        new_notif = Notification(
+            user_id=user_id,
+            user_type=user_type,
+            message=message,
+            type=type
+        )
+        db.session.add(new_notif)
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(f"Error creating notification: {e}")
+        db.session.rollback()
+        return False
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -355,6 +373,13 @@ def swipe():
             job.title,
             seeker.resume_path,
         )
+        # ✅ Trigger company notification
+        create_notification(
+            user_id=job.company_id,
+            user_type='company',
+            message=f"New applicant: {seeker.first_name} {seeker.last_name} for '{job.title}'",
+            type='application'
+        )
 
     return jsonify({"status": "ok", "direction": direction, "match_score": m_score})
 
@@ -509,7 +534,107 @@ def update_applicant(swipe_id, action):
         pass
 
     flash(f"Applicant {action_text}.", "success")
+
+    # ✅ Trigger seeker notification
+    notif_msg = f"Your application for {job.title} at {job.company.company_name} has been {action_text}."
+    if action == "accept":
+        notif_msg = f"Congratulations! 🎉 Your application for {job.title} at {job.company.company_name} has been ACCEPTED."
+    elif action == "interview":
+        notif_msg = f"Interview Scheduled! 📅 {job.company.company_name} wants to interview you for {job.title}."
+
+    create_notification(
+        user_id=seeker.id,
+        user_type='seeker',
+        message=notif_msg,
+        type=action
+    )
+
     return redirect(url_for("company_dashboard"))
+
+
+# ── Notification Routes ───────────────────────────────────────────────────
+
+@app.route("/notifications")
+def notifications_history():
+    user_id = session.get("seeker_id") or session.get("company_id")
+    user_type = "seeker" if session.get("seeker_id") else "company"
+
+    if not user_id:
+        return redirect(url_for("index"))
+
+    # Fetch all notifications for the user
+    notifications = (
+        Notification.query.filter_by(user_id=user_id, user_type=user_type)
+        .order_by(Notification.created_at.desc())
+        .all()
+    )
+    return render_template("notifications.html", notifications=notifications, user_type=user_type)
+
+
+@app.route("/api/notifications")
+def get_notifications():
+    user_id = session.get("seeker_id") or session.get("company_id")
+    user_type = "seeker" if session.get("seeker_id") else "company"
+
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    notifs = (
+        Notification.query.filter_by(user_id=user_id, user_type=user_type)
+        .order_by(Notification.created_at.desc())
+        .limit(10)
+        .all()
+    )
+
+    return jsonify([{
+        "id": n.id,
+        "message": n.message,
+        "type": n.type,
+        "is_read": n.is_read,
+        "created_at": n.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    } for n in notifs])
+
+
+@app.route("/api/notifications/unread-count")
+def get_unread_count():
+    user_id = session.get("seeker_id") or session.get("company_id")
+    user_type = "seeker" if session.get("seeker_id") else "company"
+
+    if not user_id:
+        return jsonify({"count": 0})
+
+    count = Notification.query.filter_by(user_id=user_id, user_type=user_type, is_read=False).count()
+    return jsonify({"count": count})
+
+
+@app.route("/api/notifications/read/<int:notif_id>", methods=["POST"])
+def mark_read(notif_id):
+    user_id = session.get("seeker_id") or session.get("company_id")
+    user_type = "seeker" if session.get("seeker_id") else "company"
+
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    notif = Notification.query.get(notif_id)
+    if notif and notif.user_id == user_id and notif.user_type == user_type:
+        notif.is_read = True
+        db.session.commit()
+        return jsonify({"status": "ok"})
+
+    return jsonify({"error": "Not found"}), 404
+
+
+@app.route("/api/notifications/read-all", methods=["POST"])
+def mark_all_read():
+    user_id = session.get("seeker_id") or session.get("company_id")
+    user_type = "seeker" if session.get("seeker_id") else "company"
+
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    Notification.query.filter_by(user_id=user_id, user_type=user_type, is_read=False).update({"is_read": True})
+    db.session.commit()
+    return jsonify({"status": "ok"})
 
 
 if __name__ == "__main__":

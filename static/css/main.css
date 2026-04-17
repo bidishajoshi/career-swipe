@@ -1389,3 +1389,174 @@ body.light-mode .filter-input {
   .jobs-grid { grid-template-columns: 1fr; }
   .sidebar-nav a { padding: 7px 12px !important; font-size: 12px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   NOTIFICATION SYSTEM STYLES
+   ════════════════════════════════════════════════════════════════════════ */
+.notif-dropdown-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notif-btn {
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  position: relative;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-btn:hover { background: rgba(59, 130, 246, 0.1); border-color: var(--border-hover); }
+
+.bell-icon { font-size: 1.1rem; }
+
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--bg-deep);
+  animation: badge-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 15px);
+  right: 0;
+  width: 340px;
+  max-height: 480px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  display: none; /* Controlled by JS */
+  transform-origin: top right;
+  animation: dropdown-fade-in 0.25s ease-out;
+}
+.notif-dropdown.show { display: flex; }
+
+@keyframes dropdown-fade-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.notif-header {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.notif-header h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.btn-text:hover { background: rgba(59, 130, 246, 0.1); }
+
+.notif-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 350px;
+}
+.notif-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.notif-item {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.notif-item:hover { background: rgba(59, 130, 246, 0.05); }
+.notif-item.unread { background: rgba(59, 130, 246, 0.02); }
+.item-notif-msg { font-size: 13.5px; line-height: 1.4; color: var(--text); margin-bottom: 4px; }
+.item-notif-time { font-size: 11px; color: var(--text-muted); }
+
+.notif-footer {
+  padding: 0.75rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.notif-footer a {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+}
+.notif-footer a:hover { text-decoration: underline; }
+
+/* Toast System */
+.notif-toasts {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast-item {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 400px;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: toast-slide-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.toast-item.hide { animation: toast-slide-out 0.4s forwards; }
+
+@keyframes toast-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-slide-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.toast-icon { font-size: 1.5rem; }
+.toast-content p { font-size: 14px; font-weight: 500; color: var(--text); }
+
