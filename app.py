@@ -135,13 +135,24 @@ def upload_resume_step():
             extracted_data = process_resume(resume_path, app.config["RESUME_FOLDER"])
             
             if extracted_data:
-                # Store in session for autofill
-                session["autofill_data"] = extracted_data
+                # User wants session["resume_data"] with "name", "email", "skills", "resume_path"
+                extracted_name = f"{extracted_data.get('first_name', '')} {extracted_data.get('last_name', '')}".strip()
+                extracted_email = extracted_data.get("email", "")
+                extracted_skills = extracted_data.get("skills", "")
+                
+                # Debugging Step
+                print("Extracted:", extracted_name, extracted_email, extracted_skills)
+                
+                session["resume_data"] = {
+                    "name": extracted_name,
+                    "email": extracted_email,
+                    "skills": extracted_skills,
+                    "resume_path": resume_path
+                }
                 flash("Resume parsed successfully! Please complete your registration.", "success")
             else:
                 flash("Could not extract data from the resume, but we've saved it for your profile.", "warning")
-                # Even if extraction fails, save the path
-                session["autofill_data"] = {"resume_path": resume_path}
+                session["resume_data"] = {"resume_path": resume_path}
             
             return redirect(url_for("register_seeker"))
         else:
@@ -153,7 +164,9 @@ def upload_resume_step():
 
 @app.route("/register/seeker", methods=["GET", "POST"])
 def register_seeker():
-    autofill = session.get("autofill_data", {})
+    resume_data = session.get("resume_data", {})
+    # Debugging Step
+    print("Session data:", resume_data)
     
     if request.method == "POST":
         email = request.form["email"].strip().lower()
@@ -162,10 +175,8 @@ def register_seeker():
             flash("Email already registered.", "error")
             return redirect(url_for("register_seeker"))
 
-        # Use resume path from session if it was uploaded in previous step
-        resume_path = autofill.get("resume_path", "")
+        resume_path = resume_data.get("resume_path", "")
         
-        # If user uploaded a NEW resume file here, it overrides the session one
         resume_file = request.files.get("resume")
         if resume_file and resume_file.filename and allowed_file(resume_file.filename, ALLOWED_RESUME):
             fname = secure_filename(f"{uuid.uuid4()}_{resume_file.filename}")
@@ -193,13 +204,16 @@ def register_seeker():
         db.session.add(new_seeker)
         db.session.commit()
 
-        # Clear autofill session
-        session.pop("autofill_data", None)
+        session.pop("resume_data", None)
 
         flash("Account created! You can log in now.", "success")
         return redirect(url_for("login_seeker"))
         
-    return render_template("register_seeker.html", autofill=autofill)
+    return render_template("register_seeker.html", 
+                           name=resume_data.get("name", ""),
+                           email=resume_data.get("email", ""),
+                           skills=resume_data.get("skills", ""),
+                           resume_path=resume_data.get("resume_path", ""))
 
 
 @app.route("/register/company", methods=["GET", "POST"])
