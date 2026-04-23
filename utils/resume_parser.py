@@ -103,28 +103,24 @@ def extract_email(text):
 
 def extract_name(text):
     """Robust heuristic to extract name, skipping common headers."""
-    # Common headers to ignore
     ignore_list = [
-        "curriculum vitae", "resume", "cv", "name:", "bio", 
-        "summary", "profile", "contact", "experience"
+        "curriculum vitae", "resume", "cv", "bio", 
+        "summary", "profile", "contact", "experience", "education"
     ]
     
     lines = [line.strip() for line in text.split('\n') if line.strip()]
-    for line in lines[:10]: # Look in first 10 non-empty lines
+    for line in lines[:20]: # Scanned deeper
         clean_line = line.lower()
-        # Skip lines that are just headers or common noise
         if any(header in clean_line for header in ignore_list):
             continue
-        # Skip lines that look like contact info
-        if "@" in line or any(char.isdigit() for char in line) and "+" in line:
+        if "@" in line or (any(char.isdigit() for char in line) and len(line) < 20):
             continue
-        
-        # Assume first substantial line (2-4 words) that isn't a header is the name
+            
         words = line.split()
-        if 2 <= len(words) <= 4:
+        if 2 <= len(words) <= 6: # Up to 6 words
             return line
             
-    return ""
+    return "Candidate Name"
 
 def extract_skills(text):
     """Extracts skills based on keyword matching."""
@@ -182,17 +178,15 @@ def process_resume(filepath, upload_folder):
 
     # Split name into first and last
     name_parts = name.split()
-    first_name = name_parts[0] if len(name_parts) > 0 else ""
-    last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+    first_name = name_parts[0] if len(name_parts) > 0 else "Unknown"
+    last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "Candidate"
 
-    print(f"DEBUG: Scanned Resume. Name: {name}, Email: {email}, Skills Count: {len(skills.split(',')) if skills else 0}", flush=True)
+    print(f"DEBUG: Scanned Resume. Name: {name}, Email: {email}, Skills: {len(skills)} chars", flush=True)
 
-    result = {
+    return {
         "first_name": first_name,
         "last_name": last_name,
-        "email": email,
-        "skills": skills,
+        "email": email or "not_found@example.com",
+        "skills": skills or "Manual input required",
         "resume_path": temp_pdf_path
     }
-
-    return result
