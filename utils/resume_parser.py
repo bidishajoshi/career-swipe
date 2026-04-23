@@ -178,6 +178,8 @@ def process_resume(filepath, upload_folder):
     first_name = name_parts[0] if len(name_parts) > 0 else ""
     last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
 
+    print(f"DEBUG: Scanned Resume. Name: {name}, Email: {email}, Skills Count: {len(skills.split(',')) if skills else 0}", flush=True)
+
     result = {
         "first_name": first_name,
         "last_name": last_name,

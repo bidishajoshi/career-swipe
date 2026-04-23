@@ -1,4 +1,4 @@
-import os
+import os, sys
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -141,7 +141,7 @@ def upload_resume_step():
                 extracted_skills = extracted_data.get("skills", "")
                 
                 # Debugging Step
-                print("Extracted:", extracted_name, extracted_email, extracted_skills)
+                print(f"DEBUG: Extracted for session: {extracted_name}, {extracted_email}", flush=True)
                 
                 session["resume_data"] = {
                     "name": extracted_name,
@@ -149,10 +149,13 @@ def upload_resume_step():
                     "skills": extracted_skills,
                     "resume_path": resume_path
                 }
-                flash("Resume parsed successfully! Please complete your registration.", "success")
+                session.modified = True # Ensure session is saved
+                flash("Resume parsed successfully!", "success")
             else:
-                flash("Could not extract data from the resume, but we've saved it for your profile.", "warning")
+                print("DEBUG: extraction failed or returned no data", flush=True)
+                flash("Could not extract data from the resume.", "warning")
                 session["resume_data"] = {"resume_path": resume_path}
+                session.modified = True
             
             return redirect(url_for("register_seeker"))
         else:
@@ -166,7 +169,7 @@ def upload_resume_step():
 def register_seeker():
     resume_data = session.get("resume_data", {})
     # Debugging Step
-    print("Session data:", resume_data)
+    print(f"DEBUG: Session data in register_seeker: {resume_data}", flush=True)
     
     if request.method == "POST":
         email = request.form["email"].strip().lower()
