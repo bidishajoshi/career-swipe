@@ -147,26 +147,33 @@ def extract_text_from_word(word_path):
 
 def process_resume(filepath, upload_folder):
     """Main function to handle resume processing."""
+    print(f"DEBUG: Processing file: {filepath}", flush=True)
+    if not os.path.exists(filepath):
+        print(f"DEBUG: File NOT found at {filepath}", flush=True)
+        return None
+
     ext = filepath.rsplit('.', 1)[-1].lower()
     temp_pdf_path = None
     text = ""
 
     if ext in ['doc', 'docx']:
-        # Extract text directly from docx if possible (better results)
+        print(f"DEBUG: Detected Word format ({ext}). Converting...", flush=True)
         if ext == 'docx':
             text = extract_text_from_word(filepath)
+            print(f"DEBUG: Word direct text length: {len(text)}", flush=True)
         
-        # Still convert to PDF as requested for storage
         temp_pdf_path = convert_to_pdf(filepath, upload_folder)
-        
-        # If text extraction from docx failed or it's .doc, try PDF extraction
         if not text and temp_pdf_path:
             text = extract_text_from_pdf(temp_pdf_path)
+            print(f"DEBUG: Text length from converted PDF: {len(text)}", flush=True)
     elif ext == 'pdf':
+        print(f"DEBUG: Detected PDF format.", flush=True)
         temp_pdf_path = filepath
         text = extract_text_from_pdf(temp_pdf_path)
+        print(f"DEBUG: PDF direct text length: {len(text)}", flush=True)
     
-    if not text:
+    if not text or len(text.strip()) == 0:
+        print("DEBUG: Final extracted text is EMPTY", flush=True)
         return None
 
     name = extract_name(text)
