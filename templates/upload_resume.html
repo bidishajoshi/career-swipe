@@ -26,11 +26,11 @@
           <p style="font-size: 12px; color: var(--text-muted); margin-top: 0.5rem;">Supports PDF, DOC, DOCX</p>
           <span class="file-name-display" id="resume-name" style="display: block; margin-top: 1rem; color: var(--primary);"></span>
         </label>
-        <input type="file" name="resume" id="resume-input" accept=".pdf,.doc,.docx" style="display:none">
+        <input type="file" name="resume" id="resume-input" accept=".pdf,.doc,.docx" style="display:none" required>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;">
-        <button type="submit" class="btn btn-primary btn-full" id="upload-btn" disabled>
+        <button type="submit" class="btn btn-primary btn-full" id="upload-btn">
           Extract Details & Next →
         </button>
         
@@ -55,13 +55,21 @@
 </div>
 
 <style>
-.spinner {
+.spinner, .spinner-sm {
   width: 40px;
   height: 40px;
   border: 4px solid rgba(59, 130, 246, 0.1);
   border-left-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+.spinner-sm {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -82,14 +90,12 @@ const uploadLabel = document.querySelector('.file-upload-label');
 function updateFileDisplay(file) {
   if (file) {
     resumeName.textContent = file.name;
-    uploadBtn.disabled = false;
     uploadBtn.style.opacity = '1';
     uploadBtn.style.cursor = 'pointer';
     console.log("File selected:", file.name);
   } else {
-    resumeName.textContent = '';
-    uploadBtn.disabled = true;
-    uploadBtn.style.opacity = '0.5';
+    resumeName.textContent = 'No file chosen';
+    uploadBtn.style.opacity = '0.7';
   }
 }
 
@@ -116,13 +122,28 @@ uploadLabel.addEventListener('drop', (e) => {
   uploadLabel.style.backgroundColor = 'transparent';
   
   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    resumeInput.files = e.dataTransfer.files;
-    updateFileDisplay(e.dataTransfer.files[0]);
+    // Check if file type is allowed
+    const file = e.dataTransfer.files[0];
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (['pdf', 'doc', 'docx'].includes(ext)) {
+       const dataTransfer = new DataTransfer();
+       dataTransfer.items.add(file);
+       resumeInput.files = dataTransfer.files;
+       updateFileDisplay(file);
+    } else {
+       alert("Invalid file type. Please upload a PDF, DOC, or DOCX.");
+    }
   }
 });
 
 uploadForm.addEventListener('submit', function(e) {
+  if (!resumeInput.files || resumeInput.files.length === 0) {
+    e.preventDefault();
+    alert("Please select a resume file first.");
+    return;
+  }
   console.log("Form submitting...");
+  uploadBtn.innerHTML = '<span class="spinner-sm"></span> Processing...';
   uploadForm.style.opacity = '0.3';
   uploadForm.style.pointerEvents = 'none';
   processingOverlay.style.display = 'block';
