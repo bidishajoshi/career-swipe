@@ -18,11 +18,11 @@
   <div class="field-row">
     <div class="field">
       <label>First name</label>
-      <input type="text" name="first_name" required>
+      <input type="text" name="first_name" required value="{{ autofill.get('first_name', '') }}">
     </div>
     <div class="field">
       <label>Last name</label>
-      <input type="text" name="last_name" required>
+      <input type="text" name="last_name" required value="{{ autofill.get('last_name', '') }}">
     </div>
   </div>
 
@@ -43,7 +43,7 @@
 
   <div class="field">
     <label>Email address</label>
-    <input type="email" name="email" required placeholder="ex@gmail.com">
+    <input type="email" name="email" required placeholder="ex@gmail.com" value="{{ autofill.get('email', '') }}">
   </div>
 
   <div class="field-row">
@@ -174,7 +174,7 @@
   <div class="form-section-label">Skills & portfolio</div>
   <div class="field">
     <label>Skills</label>
-    <input type="text" name="skills" placeholder="Communication, Driving, Python, Nursing...">
+    <input type="text" name="skills" placeholder="Communication, Driving, Python, Nursing..." value="{{ autofill.get('skills', '') }}">
   </div>
 
   <div class="field-row">
@@ -192,10 +192,13 @@
   <div class="form-section-label">Resume upload</div>
   <div class="field">
     <label class="file-upload-label seeker-upload" for="resume-input">
-      <span><strong>Upload Resume</strong></span>
-      <span class="file-name-display" id="resume-name">No file chosen</span>
+      <span><strong>{{ 'Change Resume' if autofill.get('resume_path') else 'Upload Resume' }}</strong></span>
+      <span class="file-name-display" id="resume-name">{{ autofill.get('resume_path', '').split('_', 1)[-1] if autofill.get('resume_path') else 'No file chosen' }}</span>
     </label>
     <input type="file" name="resume" id="resume-input" accept=".pdf,.doc,.docx" style="display:none">
+    {% if autofill.get('resume_path') %}
+    <p style="font-size: 11px; color: var(--primary); margin-top: 0.5rem; text-align: center;">✅ Resume successfully attached from previous step</p>
+    {% endif %}
   </div>
 
   <button type="submit" class="btn btn-primary btn-full">Create Seeker Account →</button>

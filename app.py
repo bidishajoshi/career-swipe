@@ -16,6 +16,7 @@ from extensions import db, migrate, mail
 from models import Seeker, Company, JobListing, JobSwipe, Notification
 from utils.tfidf import parse_resume, match_resume_to_job, extract_keywords
 from utils.ats import calculate_ats_score
+from utils.resume_parser import process_resume
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -121,8 +122,39 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/upload-resume", methods=["GET", "POST"])
+def upload_resume_step():
+    if request.method == "POST":
+        resume_file = request.files.get("resume")
+        if resume_file and resume_file.filename and allowed_file(resume_file.filename, ALLOWED_RESUME):
+            fname = secure_filename(f"{uuid.uuid4()}_{resume_file.filename}")
+            resume_path = os.path.join(app.config["RESUME_FOLDER"], fname)
+            resume_file.save(resume_path)
+            
+            # Process resume for extraction
+            extracted_data = process_resume(resume_path, app.config["RESUME_FOLDER"])
+            
+            if extracted_data:
+                # Store in session for autofill
+                session["autofill_data"] = extracted_data
+                flash("Resume parsed successfully! Please complete your registration.", "success")
+            else:
+                flash("Could not extract data from the resume, but we've saved it for your profile.", "warning")
+                # Even if extraction fails, save the path
+                session["autofill_data"] = {"resume_path": resume_path}
+            
+            return redirect(url_for("register_seeker"))
+        else:
+            flash("Invalid file type. Please upload a PDF, DOC, or DOCX.", "error")
+            return redirect(url_for("upload_resume_step"))
+            
+    return render_template("upload_resume.html")
+
+
 @app.route("/register/seeker", methods=["GET", "POST"])
 def register_seeker():
+    autofill = session.get("autofill_data", {})
+    
     if request.method == "POST":
         email = request.form["email"].strip().lower()
 
@@ -130,8 +162,11 @@ def register_seeker():
             flash("Email already registered.", "error")
             return redirect(url_for("register_seeker"))
 
+        # Use resume path from session if it was uploaded in previous step
+        resume_path = autofill.get("resume_path", "")
+        
+        # If user uploaded a NEW resume file here, it overrides the session one
         resume_file = request.files.get("resume")
-        resume_path = ""
         if resume_file and resume_file.filename and allowed_file(resume_file.filename, ALLOWED_RESUME):
             fname = secure_filename(f"{uuid.uuid4()}_{resume_file.filename}")
             resume_path = os.path.join(app.config["RESUME_FOLDER"], fname)
@@ -147,14 +182,24 @@ def register_seeker():
             experience=request.form.get("experience", ""),
             skills=request.form.get("skills", ""),
             resume_path=resume_path,
+            gender=request.form.get("gender"),
+            dob=request.form.get("dob"),
+            experience_type=request.form.get("experience_type"),
+            career_field=request.form.get("career_field"),
+            job_status=request.form.get("job_status"),
+            job_location_type=request.form.get("job_location_type"),
             is_verified=True
         )
         db.session.add(new_seeker)
         db.session.commit()
 
+        # Clear autofill session
+        session.pop("autofill_data", None)
+
         flash("Account created! You can log in now.", "success")
         return redirect(url_for("login_seeker"))
-    return render_template("register_seeker.html")
+        
+    return render_template("register_seeker.html", autofill=autofill)
 
 
 @app.route("/register/company", methods=["GET", "POST"])
