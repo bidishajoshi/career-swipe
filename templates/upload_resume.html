@@ -77,18 +77,52 @@ const resumeName = document.getElementById('resume-name');
 const uploadBtn = document.getElementById('upload-btn');
 const uploadForm = document.getElementById('upload-form');
 const processingOverlay = document.getElementById('processing-overlay');
+const uploadLabel = document.querySelector('.file-upload-label');
 
-resumeInput.addEventListener('change', function() {
-  if (this.files && this.files[0]) {
-    resumeName.textContent = this.files[0].name;
+function updateFileDisplay(file) {
+  if (file) {
+    resumeName.textContent = file.name;
     uploadBtn.disabled = false;
+    uploadBtn.style.opacity = '1';
+    uploadBtn.style.cursor = 'pointer';
+    console.log("File selected:", file.name);
   } else {
     resumeName.textContent = '';
     uploadBtn.disabled = true;
+    uploadBtn.style.opacity = '0.5';
+  }
+}
+
+resumeInput.addEventListener('change', function() {
+  updateFileDisplay(this.files[0]);
+});
+
+// Drag and Drop support
+uploadLabel.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadLabel.style.borderColor = 'var(--primary)';
+  uploadLabel.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+});
+
+uploadLabel.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  uploadLabel.style.borderColor = 'rgba(255,255,255,0.1)';
+  uploadLabel.style.backgroundColor = 'transparent';
+});
+
+uploadLabel.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadLabel.style.borderColor = 'rgba(255,255,255,0.1)';
+  uploadLabel.style.backgroundColor = 'transparent';
+  
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    resumeInput.files = e.dataTransfer.files;
+    updateFileDisplay(e.dataTransfer.files[0]);
   }
 });
 
-uploadForm.addEventListener('submit', function() {
+uploadForm.addEventListener('submit', function(e) {
+  console.log("Form submitting...");
   uploadForm.style.opacity = '0.3';
   uploadForm.style.pointerEvents = 'none';
   processingOverlay.style.display = 'block';
