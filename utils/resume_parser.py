@@ -95,7 +95,34 @@ def process_resume(filepath, upload_folder):
     email = email_match.group(0) if email_match else ""
     print("EMAIL:", email)
 
-    # Step 4: Extract Skills
+    # Step 4: Extract Phone
+    phone_regex = r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\+?\d{10,13}'
+    phone_match = re.search(phone_regex, text)
+    phone = phone_match.group(0) if phone_match else ""
+    print("PHONE:", phone)
+
+    # Step 5: Extract Address (Heuristic)
+    address = ""
+    addr_keywords = ['Street', 'St.', 'Lane', 'Ln', 'Road', 'Rd', 'Avenue', 'Ave', 'Drive', 'Dr', 'Boulevard', 'Blvd', 'Postal', 'Zip']
+    for line in lines[:20]:
+        if any(kw in line for kw in addr_keywords) or re.search(r'\d{5}', line):
+            address = line
+            break
+    print("ADDRESS:", address)
+
+    # Step 6: Extract Education & Experience (Basic)
+    education = ""
+    experience = ""
+    
+    # Simple keyword search
+    for i, line in enumerate(lines):
+        line_lower = line.lower()
+        if not education and ("education" in line_lower or "academic" in line_lower):
+            if i + 1 < len(lines): education = lines[i+1]
+        if not experience and ("experience" in line_lower or "work history" in line_lower):
+            if i + 1 < len(lines): experience = lines[i+1]
+
+    # Step 7: Extract Skills
     found_skills = [s.capitalize() for s in SKILLS_LIST if s in text.lower()]
     skills_str = ", ".join(found_skills)
     print("SKILLS:", skills_str)
@@ -106,10 +133,14 @@ def process_resume(filepath, upload_folder):
     last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "Candidate"
 
     return {
-        "name": full_name, # User requested 'name' variable
+        "name": full_name,
         "first_name": first_name,
         "last_name": last_name,
         "email": email,
+        "phone": phone,
+        "address": address,
+        "education": education,
+        "experience": experience,
         "skills": skills_str,
         "resume_path": pdf_path or filepath
     }

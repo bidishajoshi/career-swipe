@@ -11,6 +11,7 @@ class Seeker(db.Model):
     email = db.Column(db.String(255), nullable=False, unique=True, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(30))
+    address = db.Column(db.String(500))
     education = db.Column(db.String(255))
     experience = db.Column(db.Text)
     skills = db.Column(db.Text)

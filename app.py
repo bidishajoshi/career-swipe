@@ -146,6 +146,10 @@ def upload_resume_step():
                 session["resume_data"] = {
                     "name": extracted_name,
                     "email": extracted_email,
+                    "phone": extracted_data.get("phone", ""),
+                    "address": extracted_data.get("address", ""),
+                    "education": extracted_data.get("education", ""),
+                    "experience": extracted_data.get("experience", ""),
                     "skills": extracted_skills,
                     "resume_path": resume_path
                 }
@@ -192,6 +196,7 @@ def register_seeker():
             email=email,
             password_hash=generate_password_hash(request.form["password"]),
             phone=request.form.get("phone", ""),
+            address=request.form.get("address", ""),
             education=request.form.get("education", ""),
             experience=request.form.get("experience", ""),
             skills=request.form.get("skills", ""),
@@ -215,6 +220,10 @@ def register_seeker():
     return render_template("register_seeker.html", 
                            name=resume_data.get("name", ""),
                            email=resume_data.get("email", ""),
+                           phone=resume_data.get("phone", ""),
+                           address=resume_data.get("address", ""),
+                           education=resume_data.get("education", ""),
+                           experience=resume_data.get("experience", ""),
                            skills=resume_data.get("skills", ""),
                            resume_path=resume_data.get("resume_path", ""))
 
