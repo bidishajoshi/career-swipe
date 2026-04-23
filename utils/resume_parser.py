@@ -5,64 +5,36 @@ import uuid
 import pdfplumber
 from docx import Document
 
-# A comprehensive list of skills to search for across various industries
-SKILLS_DB = [
-    # --- TECH & IT ---
-    "Python", "Java", "JavaScript", "C++", "C#", "PHP", "Ruby", "Swift", "Kotlin", "Go", "Rust",
-    "HTML", "CSS", "SQL", "NoSQL", "React", "Angular", "Vue", "Node.js", "Express", "Django", "Flask",
-    "Spring", "Hibernate", "AWS", "Azure", "GCP", "Docker", "Kubernetes", "DevOps", "CI/CD",
-    "Machine Learning", "Data Analysis", "AI", "NLP", "Deep Learning", "TensorFlow", "PyTorch",
-    "Excel", "Tableau", "Power BI", "Agile", "Scrum", "UI/UX", "Figma", "Git", "GitHub", "Linux",
-    "Cybersecurity", "Blockchain", "TypeScript", "GraphQL", "PostgreSQL", "MongoDB", "Flutter",
+# Core skills list for matching
+SKILLS_LIST = ["python", "java", "sql", "html", "css", "javascript", "react", "flask", "django", "node", "aws"]
 
-    # --- BUSINESS & MANAGEMENT ---
-    "Project Management", "Business Analysis", "Operations Management", "Strategic Planning",
-    "Team Leadership", "Risk Management", "Business Development", "Stakeholder Management",
-    "Budgeting", "Contract Negotiation", "Agile Methodologies", "Change Management",
+def extract_text_from_pdf(pdf_path):
+    """Extracts text from a PDF file using pdfplumber."""
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            text = ""
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+            return text
+    except Exception as e:
+        print(f"PDF extraction error: {e}")
+        return ""
 
-    # --- FINANCE & ACCOUNTING ---
-    "Accounting", "Financial Analysis", "Financial Reporting", "Auditing", "Taxation",
-    "QuickBooks", "SAP", "Banking", "Investment Management", "Payroll", "Economic Research",
-
-    # --- SALES & MARKETING ---
-    "Sales", "Marketing", "Digital Marketing", "SEO", "SEM", "Content Writing", "Copywriting",
-    "Social Media Marketing", "Email Marketing", "Market Research", "Public Relations",
-    "CRM", "Salesforce", "Branding", "Direct Sales", "Account Management",
-
-    # --- HEALTHCARE & MEDICAL ---
-    "Nursing", "Patient Care", "Medical Terminology", "Clinical Research", "Pharmacology",
-    "Diagnostics", "Healthcare Administration", "First Aid", "CPR", "Mental Health",
-    "Emergency Medicine", "Pediatrics", "Surgery",
-
-    # --- EDUCATION & TEACHING ---
-    "Teaching", "Curriculum Development", "Classroom Management", "Lesson Planning",
-    "Special Education", "Tutoring", "Early Childhood Education", "Academic Research",
-
-    # --- HOSPITALITY & TOURISM ---
-    "Customer Service", "Hospitality Management", "Event Planning", "Guest Relations",
-    "Travel Coordination", "Catering", "Front Office", "Tourism Management",
-
-    # --- ADMINISTRATIVE & OFFICE ---
-    "Administrative Support", "Office Management", "Data Entry", "Scheduling",
-    "Document Management", "Microsoft Office", "Outlook", "Communication Skills",
-
-    # --- LEGAL & COMPLIANCE ---
-    "Legal Research", "Legal Drafting", "Litigation Support", "Compliance", "Contract Law",
-    "Intellectual Property", "Paralegal Studies",
-
-    # --- LOGISTICS & SUPPLY CHAIN ---
-    "Logistics", "Supply Chain Management", "Inventory Management", "Warehouse Operations",
-    "Procurement", "Distribution", "Shipping & Receiving",
-
-    # --- SOFT SKILLS ---
-    "Problem Solving", "Critical Thinking", "Time Management", "Adaptability",
-    "Leadership", "Teamwork", "Conflict Resolution", "Interpersonal Skills"
-]
+def extract_text_from_docx(docx_path):
+    """Extracts text from a .docx file using python-docx."""
+    try:
+        doc = Document(docx_path)
+        text = "\n".join([p.text for p in doc.paragraphs])
+        return text
+    except Exception as e:
+        print(f"Word extraction error: {e}")
+        return ""
 
 def convert_to_pdf(input_path, output_folder):
     """Converts .doc or .docx to .pdf using LibreOffice headless."""
     try:
-        # LibreOffice command: soffice --headless --convert-to pdf --outdir output_folder input_path
         subprocess.run([
             'soffice', 
             '--headless', 
@@ -71,122 +43,73 @@ def convert_to_pdf(input_path, output_folder):
             input_path
         ], check=True, capture_output=True)
         
-        # The output file will have the same basename but .pdf extension
         base_name = os.path.basename(input_path).rsplit('.', 1)[0]
         pdf_path = os.path.join(output_folder, f"{base_name}.pdf")
-        
-        if os.path.exists(pdf_path):
-            return pdf_path
-        return None
+        return pdf_path if os.path.exists(pdf_path) else None
     except Exception as e:
         print(f"Conversion error: {e}")
         return None
 
-def extract_text_from_pdf(pdf_path):
-    """Extracts text from a PDF file using pdfplumber."""
-    text = ""
-    try:
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text + "\n"
-    except Exception as e:
-        print(f"PDF extraction error: {e}")
-    return text
-
-def extract_email(text):
-    """Extracts email using regex."""
-    email_regex = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-    match = re.search(email_regex, text)
-    return match.group(0) if match else ""
-
-def extract_name(text):
-    """Robust heuristic to extract name, skipping common headers."""
-    ignore_list = [
-        "curriculum vitae", "resume", "cv", "bio", 
-        "summary", "profile", "contact", "experience", "education"
-    ]
-    
-    lines = [line.strip() for line in text.split('\n') if line.strip()]
-    for line in lines[:20]: # Scanned deeper
-        clean_line = line.lower()
-        if any(header in clean_line for header in ignore_list):
-            continue
-        if "@" in line or (any(char.isdigit() for char in line) and len(line) < 20):
-            continue
-            
-        words = line.split()
-        if 2 <= len(words) <= 6: # Up to 6 words
-            return line
-            
-    return "Candidate Name"
-
-def extract_skills(text):
-    """Extracts skills based on keyword matching."""
-    found_skills = []
-    text_lower = text.lower()
-    for skill in SKILLS_DB:
-        # Use word boundaries to avoid matching sub-words (e.g., 'C' in 'Cloud')
-        if re.search(rf'\b{re.escape(skill)}\b', text, re.IGNORECASE):
-            found_skills.append(skill)
-    return ", ".join(found_skills)
-
-def extract_text_from_word(word_path):
-    """Extracts text from a .docx file using python-docx."""
-    try:
-        doc = Document(word_path)
-        return "\n".join([para.text for para in doc.paragraphs])
-    except Exception as e:
-        print(f"Word extraction error: {e}")
-        return ""
-
 def process_resume(filepath, upload_folder):
     """Main function to handle resume processing."""
-    print(f"DEBUG: Processing file: {filepath}", flush=True)
     if not os.path.exists(filepath):
-        print(f"DEBUG: File NOT found at {filepath}", flush=True)
         return None
 
     ext = filepath.rsplit('.', 1)[-1].lower()
-    temp_pdf_path = None
     text = ""
+    pdf_path = None
 
-    if ext in ['doc', 'docx']:
-        print(f"DEBUG: Detected Word format ({ext}). Converting...", flush=True)
-        if ext == 'docx':
-            text = extract_text_from_word(filepath)
-            print(f"DEBUG: Word direct text length: {len(text)}", flush=True)
-        
-        temp_pdf_path = convert_to_pdf(filepath, upload_folder)
-        if not text and temp_pdf_path:
-            text = extract_text_from_pdf(temp_pdf_path)
-            print(f"DEBUG: Text length from converted PDF: {len(text)}", flush=True)
+    # Step 1: Extract Text
+    if ext == 'docx':
+        text = extract_text_from_docx(filepath)
+        pdf_path = convert_to_pdf(filepath, upload_folder)
+    elif ext == 'doc':
+        pdf_path = convert_to_pdf(filepath, upload_folder)
+        if pdf_path:
+            text = extract_text_from_pdf(pdf_path)
     elif ext == 'pdf':
-        print(f"DEBUG: Detected PDF format.", flush=True)
-        temp_pdf_path = filepath
-        text = extract_text_from_pdf(temp_pdf_path)
-        print(f"DEBUG: PDF direct text length: {len(text)}", flush=True)
-    
-    if not text or len(text.strip()) == 0:
-        print("DEBUG: Final extracted text is EMPTY", flush=True)
-        return None
+        text = extract_text_from_pdf(filepath)
+        pdf_path = filepath
 
-    name = extract_name(text)
-    email = extract_email(text)
-    skills = extract_skills(text)
+    print("RAW TEXT:", text[:500] + "..." if text else "EMPTY")
+    print("TEXT LENGTH:", len(text))
 
-    # Split name into first and last
-    name_parts = name.split()
+    # Handle Empty Extraction (Scanned PDF)
+    if not text.strip():
+        print("EXTRACTION FAILED: Scanned or empty file.")
+        return {
+            "first_name": "Unknown",
+            "last_name": "Candidate",
+            "email": "",
+            "skills": "",
+            "resume_path": pdf_path or filepath
+        }
+
+    # Step 2: Extract Name (First non-empty line)
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    full_name = lines[0] if lines else "Unknown Candidate"
+    print("NAME:", full_name)
+
+    # Step 3: Extract Email
+    email_match = re.search(r'[\w.-]+@[\w.-]+', text)
+    email = email_match.group(0) if email_match else ""
+    print("EMAIL:", email)
+
+    # Step 4: Extract Skills
+    found_skills = [s.capitalize() for s in SKILLS_LIST if s in text.lower()]
+    skills_str = ", ".join(found_skills)
+    print("SKILLS:", skills_str)
+
+    # Split name for DB fields
+    name_parts = full_name.split()
     first_name = name_parts[0] if len(name_parts) > 0 else "Unknown"
     last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "Candidate"
 
-    print(f"DEBUG: Scanned Resume. Name: {name}, Email: {email}, Skills: {len(skills)} chars", flush=True)
-
     return {
+        "name": full_name, # User requested 'name' variable
         "first_name": first_name,
         "last_name": last_name,
-        "email": email or "not_found@example.com",
-        "skills": skills or "Manual input required",
-        "resume_path": temp_pdf_path
+        "email": email,
+        "skills": skills_str,
+        "resume_path": pdf_path or filepath
     }
