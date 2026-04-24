@@ -5,8 +5,14 @@ import uuid
 import pdfplumber
 from docx import Document
 
-# Core skills list for matching
-SKILLS_LIST = ["python", "java", "sql", "html", "css", "javascript", "react", "flask", "django", "node", "aws"]
+# Core skills list for matching (Expanded)
+SKILLS_LIST = [
+    "python", "java", "sql", "html", "css", "javascript", "react", "flask", "django", "node", "aws",
+    "c++", "c#", "php", "ruby", "swift", "kotlin", "go", "rust", "typescript", "angular", "vue",
+    "mongodb", "postgresql", "mysql", "docker", "kubernetes", "git", "linux", "machine learning",
+    "data science", "nlp", "cloud computing", "azure", "gcp", "tableau", "power bi", "excel",
+    "communication", "leadership", "project management", "agile", "scrum", "devops", "testing"
+]
 
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a PDF file using pdfplumber."""
@@ -88,25 +94,35 @@ def process_resume(filepath, upload_folder):
     lines = [l.strip() for l in text.split("\n") if l.strip()]
     
     # Step 2: Extract Name (Improved)
-    ignore_keywords = ["curriculum", "vitae", "resume", "page", "profile", "contact", "summary", "experience", "education", "skills"]
+    ignore_keywords = ["curriculum", "vitae", "resume", "page", "profile", "contact", "summary", "experience", "education", "skills", "objective"]
     full_name = "Unknown Candidate"
     
-    for line in lines[:15]: # Look in first 15 non-empty lines
+    for line in lines[:20]: # Look in first 20 non-empty lines
         clean_line = line.strip()
         
-        # Skip if line is too long (likely a paragraph) or too short
+        # Skip if line is too long or too short
         word_count = len(clean_line.split())
-        if word_count > 4 or word_count < 2:
+        if word_count > 5 or word_count < 1:
             continue
             
         # Skip if it contains ignore keywords or numbers (like phone/address)
         if any(kw in clean_line.lower() for kw in ignore_keywords) or any(char.isdigit() for char in clean_line):
             continue
             
-        # Check if it looks like a name (Mostly capitalized words)
+        # Check if it looks like a name (Capitalized words)
         words = clean_line.split()
-        if all(w[0].isupper() for w in words if w[0].isalpha()):
-            full_name = clean_line
+        if all(w[0].isupper() or (len(w) > 1 and w[1] == '.') for w in words if any(c.isalpha() for c in w)):
+            # Final check: shouldn't be all caps usually (some resumes do it, but let's be careful)
+            if clean_line.isupper() and word_count == 1:
+                continue
+            
+            # Strip common labels
+            name_to_clean = clean_line
+            for label in ["Name:", "Full Name:", "Candidate Name:"]:
+                if name_to_clean.lower().startswith(label.lower()):
+                    name_to_clean = name_to_clean[len(label):].strip()
+            
+            full_name = name_to_clean
             break
             
     print("NAME FOUND:", full_name)

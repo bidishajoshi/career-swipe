@@ -145,6 +145,8 @@ def upload_resume_step():
                 
                 session["resume_data"] = {
                     "name": extracted_name,
+                    "first_name": extracted_data.get("first_name", ""),
+                    "last_name": extracted_data.get("last_name", ""),
                     "email": extracted_email,
                     "phone": extracted_data.get("phone", ""),
                     "address": extracted_data.get("address", ""),
@@ -219,6 +221,8 @@ def register_seeker():
         
     return render_template("register_seeker.html", 
                            name=resume_data.get("name", ""),
+                           first_name=resume_data.get("first_name", ""),
+                           last_name=resume_data.get("last_name", ""),
                            email=resume_data.get("email", ""),
                            phone=resume_data.get("phone", ""),
                            address=resume_data.get("address", ""),
