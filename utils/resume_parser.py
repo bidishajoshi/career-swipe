@@ -140,9 +140,12 @@ def process_resume(filepath, upload_folder):
 
     # Step 5: Extract Address (Heuristic)
     address = ""
-    addr_keywords = ['Street', 'St.', 'Lane', 'Ln', 'Road', 'Rd', 'Avenue', 'Ave', 'Drive', 'Dr', 'Boulevard', 'Blvd', 'Postal', 'Zip']
-    for line in lines[:20]:
-        if any(kw in line for kw in addr_keywords) or re.search(r'\d{5}', line):
+    addr_keywords = [
+        'Street', 'St.', 'Lane', 'Ln', 'Road', 'Rd', 'Avenue', 'Ave', 'Drive', 'Dr', 'Boulevard', 'Blvd', 'Postal', 'Zip',
+        'Kathmandu', 'Nepal', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'City', 'District'
+    ]
+    for line in lines[:25]: # Look a bit deeper
+        if any(kw in line for kw in addr_keywords) or re.search(r'\d{5,6}', line):
             address = line
             break
     print("ADDRESS:", address)
