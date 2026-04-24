@@ -85,10 +85,31 @@ def process_resume(filepath, upload_folder):
             "resume_path": pdf_path or filepath
         }
 
-    # Step 2: Extract Name (First non-empty line)
     lines = [l.strip() for l in text.split("\n") if l.strip()]
-    full_name = lines[0] if lines else "Unknown Candidate"
-    print("NAME:", full_name)
+    
+    # Step 2: Extract Name (Improved)
+    ignore_keywords = ["curriculum", "vitae", "resume", "page", "profile", "contact", "summary", "experience", "education", "skills"]
+    full_name = "Unknown Candidate"
+    
+    for line in lines[:15]: # Look in first 15 non-empty lines
+        clean_line = line.strip()
+        
+        # Skip if line is too long (likely a paragraph) or too short
+        word_count = len(clean_line.split())
+        if word_count > 4 or word_count < 2:
+            continue
+            
+        # Skip if it contains ignore keywords or numbers (like phone/address)
+        if any(kw in clean_line.lower() for kw in ignore_keywords) or any(char.isdigit() for char in clean_line):
+            continue
+            
+        # Check if it looks like a name (Mostly capitalized words)
+        words = clean_line.split()
+        if all(w[0].isupper() for w in words if w[0].isalpha()):
+            full_name = clean_line
+            break
+            
+    print("NAME FOUND:", full_name)
 
     # Step 3: Extract Email
     email_match = re.search(r'[\w.-]+@[\w.-]+', text)
