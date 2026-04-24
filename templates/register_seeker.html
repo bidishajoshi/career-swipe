@@ -18,11 +18,11 @@
   <div class="field-row">
     <div class="field">
       <label>First name</label>
-      <input type="text" name="first_name" required value="{{ name.split(' ')[0] if name else '' }}">
+      <input type="text" name="first_name" required value="{{ first_name if first_name else (name.split(' ')[0] if name else '') }}">
     </div>
     <div class="field">
       <label>Last name</label>
-      <input type="text" name="last_name" required value="{{ ' '.join(name.split(' ')[1:]) if name else '' }}">
+      <input type="text" name="last_name" required value="{{ last_name if last_name else (' '.join(name.split(' ')[1:]) if name else '') }}">
     </div>
   </div>
 
