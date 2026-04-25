@@ -158,6 +158,10 @@ def upload_resume_step():
                     "experience_type": extracted_data.get("experience_type", "Full-time"),
                     "career_field": extracted_data.get("career_field", "Other"),
                     "job_location_type": extracted_data.get("job_location_type", "Local"),
+                    "desired_roles": extracted_data.get("desired_roles", ""),
+                    "employment_type": extracted_data.get("employment_type", "Full-time"),
+                    "salary": extracted_data.get("salary", ""),
+                    "availability": extracted_data.get("availability", "Immediate"),
                     "skills": extracted_skills,
                     "resume_path": resume_path
                 }
@@ -238,6 +242,10 @@ def register_seeker():
                            experience_type=resume_data.get("experience_type"),
                            career_field=resume_data.get("career_field"),
                            job_location_type=resume_data.get("job_location_type"),
+                           desired_roles=resume_data.get("desired_roles"),
+                           employment_type=resume_data.get("employment_type"),
+                           salary=resume_data.get("salary"),
+                           availability=resume_data.get("availability"),
                            skills=resume_data.get("skills"),
                            resume_path=resume_data.get("resume_path"))
 
