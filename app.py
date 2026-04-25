@@ -143,6 +143,7 @@ def upload_resume_step():
                 # Debugging Step
                 print(f"DEBUG: Extracted for session: {extracted_name}, {extracted_email}", flush=True)
                 
+                # Store all extracted fields in session for registration form
                 session["resume_data"] = {
                     "name": extracted_name,
                     "first_name": extracted_data.get("first_name", ""),
@@ -155,11 +156,10 @@ def upload_resume_step():
                     "skills": extracted_skills,
                     "resume_path": resume_path
                 }
-                session.modified = True # Ensure session is saved
-                flash("Resume parsed successfully!", "success")
+                session.modified = True 
+                flash("Resume analyzed! Please verify your information.", "success")
             else:
-                print("DEBUG: extraction failed or returned no data", flush=True)
-                flash("Could not extract data from the resume.", "warning")
+                flash("We couldn't extract all details from your resume, but you can still apply manually.", "warning")
                 session["resume_data"] = {"resume_path": resume_path}
                 session.modified = True
             
@@ -220,16 +220,16 @@ def register_seeker():
         return redirect(url_for("login_seeker"))
         
     return render_template("register_seeker.html", 
-                           name=resume_data.get("name", ""),
-                           first_name=resume_data.get("first_name", ""),
-                           last_name=resume_data.get("last_name", ""),
-                           email=resume_data.get("email", ""),
-                           phone=resume_data.get("phone", ""),
-                           address=resume_data.get("address", ""),
-                           education=resume_data.get("education", ""),
-                           experience=resume_data.get("experience", ""),
-                           skills=resume_data.get("skills", ""),
-                           resume_path=resume_data.get("resume_path", ""))
+                           name=resume_data.get("name"),
+                           first_name=resume_data.get("first_name"),
+                           last_name=resume_data.get("last_name"),
+                           email=resume_data.get("email"),
+                           phone=resume_data.get("phone"),
+                           address=resume_data.get("address"),
+                           education=resume_data.get("education"),
+                           experience=resume_data.get("experience"),
+                           skills=resume_data.get("skills"),
+                           resume_path=resume_data.get("resume_path"))
 
 
 @app.route("/register/company", methods=["GET", "POST"])

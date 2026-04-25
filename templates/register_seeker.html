@@ -1,220 +1,390 @@
 {% extends "base.html" %}
-{% block title %}Job Seeker Registration – CareerSwipe{% endblock %}
+{% block title %}Application – CareerSwipe{% endblock %}
 {% block content %}
 
 <div class="auth-wrap seeker-theme">
-  <div class="auth-card">
-    <div class="auth-header">
-      <span class="role-badge badge-seeker"> </span>
-      <h2>Create your seeker profile</h2>
-      <p>Find your perfect match in the job market</p>
+  <div class="app-flow-container">
+    
+    <!-- Step Progress Bar -->
+    <div class="step-progress-bar">
+      <div class="step-item completed">
+        <div class="step-dot">1</div>
+        <div class="step-label">Autofill</div>
+      </div>
+      <div id="prog-step-2" class="step-item active">
+        <div class="step-dot">2</div>
+        <div class="step-label">Information</div>
+      </div>
+      <div id="prog-step-3" class="step-item">
+        <div class="step-dot">3</div>
+        <div class="step-label">Experience</div>
+      </div>
+      <div id="prog-step-4" class="step-item">
+        <div class="step-dot">4</div>
+        <div class="step-label">Questions</div>
+      </div>
+      <div id="prog-step-5" class="step-item">
+        <div class="step-dot">5</div>
+        <div class="step-label">Disclosures</div>
+      </div>
+      <div id="prog-step-6" class="step-item">
+        <div class="step-dot">6</div>
+        <div class="step-label">Review</div>
+      </div>
     </div>
 
+    <div class="auth-card">
+      <form method="POST" enctype="multipart/form-data" class="auth-form" id="application-form">
+        
+        <!-- STEP 2: MY INFORMATION -->
+        <div class="step-content active" id="step-2">
+          <div class="auth-header" style="margin: -1.75rem -2rem 1.5rem; border-bottom: 1px solid var(--border);">
+            <span class="role-badge badge-seeker">Step 2 of 6</span>
+            <h2>My Information</h2>
+            <p>Tell us about yourself. Some fields may be prefilled from your resume.</p>
+          </div>
 
-<form method="POST" enctype="multipart/form-data" class="auth-form">
+          <div class="form-section-label">Personal info</div>
+          <div class="field-row">
+            <div class="field">
+              <label>First name</label>
+              <input type="text" name="first_name" id="field-first-name" required value="{{ first_name if first_name else (name.split(' ')[0] if name else '') }}">
+            </div>
+            <div class="field">
+              <label>Last name</label>
+              <input type="text" name="last_name" id="field-last-name" required value="{{ last_name if last_name else (' '.join(name.split(' ')[1:]) if name else '') }}">
+            </div>
+          </div>
 
-  <!-- PERSONAL INFO -->
-  <div class="form-section-label">Personal info</div>
-  <div class="field-row">
-    <div class="field">
-      <label>First name</label>
-      <input type="text" name="first_name" required value="{{ first_name if first_name else (name.split(' ')[0] if name else '') }}">
+          <div class="field-row">
+            <div class="field">
+              <label>Gender</label>
+              <select name="gender">
+                <option>Female</option>
+                <option>Male</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Date of Birth</label>
+              <input type="date" name="dob">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Email address</label>
+            <input type="email" name="email" id="field-email" required placeholder="ex@gmail.com" value="{{ email }}">
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Password</label>
+              <input type="password" name="password" required minlength="8">
+            </div>
+            <div class="field">
+              <label>Phone number</label>
+              <input type="tel" name="phone" id="field-phone" placeholder="+977 98XXXXXXXX" value="{{ phone }}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Address</label>
+            <input type="text" name="address" id="field-address" placeholder="City, Country or Street Address" value="{{ address }}">
+          </div>
+
+          <div class="step-footer">
+            <div></div>
+            <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next: Experience →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: MY EXPERIENCE -->
+        <div class="step-content" id="step-3">
+          <div class="auth-header" style="margin: -1.75rem -2rem 1.5rem; border-bottom: 1px solid var(--border);">
+            <span class="role-badge badge-seeker">Step 3 of 6</span>
+            <h2>My Experience</h2>
+            <p>Your professional background and education.</p>
+          </div>
+
+          <div class="form-section-label">Education</div>
+          <div class="field">
+            <label>Highest qualification</label>
+            <input type="text" name="education" id="field-education" placeholder="e.g. B.Sc. Computer Science" value="{{ education }}">
+          </div>
+
+          <div class="form-section-label">Work History</div>
+          <div class="field">
+            <label>Experience summary</label>
+            <textarea name="experience" id="field-experience" rows="5" placeholder="Describe your roles and responsibilities...">{{ experience }}</textarea>
+          </div>
+
+          <div class="field">
+            <label>Experience type</label>
+            <select name="experience_type">
+              <option>Internship</option>
+              <option>Full-time</option>
+              <option>Part-time</option>
+              <option>Freelance</option>
+              <option>No Experience</option>
+            </select>
+          </div>
+
+          <div class="form-section-label">Skills & Portfolio</div>
+          <div class="field">
+            <label>Skills</label>
+            <input type="text" name="skills" id="field-skills" placeholder="Communication, Python, Nursing..." value="{{ skills }}">
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>LinkedIn</label>
+              <input type="url" name="linkedin" placeholder="https://linkedin.com/in/username">
+            </div>
+            <div class="field">
+              <label>Portfolio / GitHub</label>
+              <input type="url" name="portfolio" placeholder="https://github.com/username">
+            </div>
+          </div>
+
+          <div class="step-footer">
+            <button type="button" class="btn btn-outline" onclick="prevStep(2)">← Back</button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(4)">Next: Questions →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: APPLICATION QUESTIONS -->
+        <div class="step-content" id="step-4">
+          <div class="auth-header" style="margin: -1.75rem -2rem 1.5rem; border-bottom: 1px solid var(--border);">
+            <span class="role-badge badge-seeker">Step 4 of 6</span>
+            <h2>Application Questions</h2>
+            <p>Specific details regarding your job search preferences.</p>
+          </div>
+
+          <div class="form-section-label">Job Preferences</div>
+          <div class="field">
+            <label>Career Field / Industry</label>
+            <select name="career_field">
+              <option>IT / Software</option>
+              <option>Business / Management</option>
+              <option>Finance / Accounting</option>
+              <option>Healthcare / Medical</option>
+              <option>Engineering</option>
+              <option>Education / Teaching</option>
+              <option>Marketing / Sales</option>
+              <option>Design / Creative</option>
+              <option>Hospitality / Tourism</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Desired job roles</label>
+            <input type="text" name="desired_roles" placeholder="Any role (Developer, Manager...)">
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Preferred employment type</label>
+              <select name="employment_type">
+                <option>Full-time</option>
+                <option>Part-time</option>
+                <option>Internship</option>
+                <option>Contract</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Preferred Job Location</label>
+              <select name="job_location_type">
+                <option>Local</option>
+                <option>Anywhere</option>
+                <option>Remote</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Salary expectation (Annual)</label>
+              <input type="number" name="salary" placeholder="e.g. 500000">
+            </div>
+            <div class="field">
+              <label>Availability</label>
+              <select name="availability">
+                <option>Immediate</option>
+                <option>1 Month</option>
+                <option>3 Months</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="step-footer">
+            <button type="button" class="btn btn-outline" onclick="prevStep(3)">← Back</button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(5)">Next: Disclosures →</button>
+          </div>
+        </div>
+
+        <!-- STEP 5: VOLUNTARY DISCLOSURES -->
+        <div class="step-content" id="step-5">
+          <div class="auth-header" style="margin: -1.75rem -2rem 1.5rem; border-bottom: 1px solid var(--border);">
+            <span class="role-badge badge-seeker">Step 5 of 6</span>
+            <h2>Voluntary Disclosures</h2>
+            <p>Equal employment opportunity data. This information is confidential.</p>
+          </div>
+
+          <div class="field">
+            <label>How did you hear about us?</label>
+            <select name="source">
+              <option>LinkedIn</option>
+              <option>Friend/Referral</option>
+              <option>Job Board</option>
+              <option>Social Media</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" style="width: auto; margin-top: 4px;" required>
+              <span>I certify that all information provided is true and accurate.</span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" style="width: auto; margin-top: 4px;">
+              <span>I agree to receive job match notifications via email.</span>
+            </label>
+          </div>
+
+          <div class="step-footer">
+            <button type="button" class="btn btn-outline" onclick="prevStep(4)">← Back</button>
+            <button type="button" class="btn btn-primary" onclick="generateReview()">Review Application →</button>
+          </div>
+        </div>
+
+        <!-- STEP 6: REVIEW -->
+        <div class="step-content" id="step-6">
+          <div class="auth-header" style="margin: -1.75rem -2rem 1.5rem; border-bottom: 1px solid var(--border);">
+            <span class="role-badge badge-seeker">Step 6 of 6</span>
+            <h2>Review Application</h2>
+            <p>Please double-check your details before submitting.</p>
+          </div>
+
+          <div id="review-container" class="glass" style="padding: 1.5rem; margin-bottom: 1.5rem; font-size: 14px;">
+            <!-- Content generated by JS -->
+          </div>
+
+          <!-- Hidden field for resume path if already uploaded -->
+          <input type="hidden" name="existing_resume" value="{{ resume_path }}">
+
+          <div class="step-footer">
+            <button type="button" class="btn btn-outline" onclick="prevStep(5)">← Back</button>
+            <button type="submit" class="btn btn-primary">Submit Application & Create Account</button>
+          </div>
+        </div>
+
+      </form>
     </div>
-    <div class="field">
-      <label>Last name</label>
-      <input type="text" name="last_name" required value="{{ last_name if last_name else (' '.join(name.split(' ')[1:]) if name else '') }}">
-    </div>
-  </div>
-
-  <div class="field-row">
-    <div class="field">
-      <label>Gender</label>
-      <select name="gender">
-        <option>Female</option>
-        <option>Male</option>
-        <option>Other</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Date of Birth</label>
-      <input type="date" name="dob">
-    </div>
-  </div>
-
-  <div class="field">
-    <label>Email address</label>
-    <input type="email" name="email" required placeholder="ex@gmail.com" value="{{ email }}">
-  </div>
-
-  <div class="field-row">
-    <div class="field">
-      <label>Password</label>
-      <input type="password" name="password" required minlength="8">
-    </div>
-    <div class="field">
-      <label>Phone number</label>
-      <input type="tel" name="phone" placeholder="+977 98XXXXXXXX" value="{{ phone }}">
-    </div>
-  </div>
-
-  <div class="field">
-    <label>Address</label>
-    <input type="text" name="address" placeholder="City, Country or Street Address" value="{{ address }}">
-  </div>
-
-  <div class="field">
-    <label>Location (City, Country)</label>
-    <input type="text" name="location" placeholder="Kathmandu, Nepal">
-  </div>
-
-  <!-- EDUCATION & EXPERIENCE -->
-  <div class="form-section-label">Education & experience</div>
-  <div class="field">
-    <label>Highest qualification</label>
-    <input type="text" name="education" placeholder="e.g. B.Sc. Computer Science" value="{{ education }}">
-  </div>
-
-  <div class="field">
-    <label>Work experience summary</label>
-    <textarea name="experience" rows="3" placeholder="Describe your roles and responsibilities...">{{ experience }}</textarea>
-  </div>
-
-  <div class="field">
-    <label>Experience type</label>
-    <select name="experience_type">
-      <option>Internship</option>
-      <option>Full-time</option>
-      <option>Part-time</option>
-      <option>Freelance</option>
-      <option>No Experience</option>
-    </select>
-  </div>
-
-  <!-- JOB PREFERENCES -->
-  <div class="form-section-label">Job preferences</div>
-
-  <div class="field">
-    <label>Career Field / Industry</label>
-    <select name="career_field">
-      <option>IT / Software</option>
-      <option>Business / Management</option>
-      <option>Finance / Accounting</option>
-      <option>Healthcare / Medical</option>
-      <option>Engineering</option>
-      <option>Education / Teaching</option>
-      <option>Marketing / Sales</option>
-      <option>Design / Creative</option>
-      <option>Hospitality / Tourism</option>
-      <option>Government</option>
-      <option>Other</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Desired job roles</label>
-    <input type="text" name="desired_roles" placeholder="Any role (Doctor, Manager, Developer...)">
-  </div>
-
-  <div class="field">
-    <label>Preferred employment type</label>
-    <select name="employment_type">
-      <option>Full-time</option>
-      <option>Part-time</option>
-      <option>Internship</option>
-      <option>Contract</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Preferred Job Location</label>
-    <select name="job_location_type">
-      <option>Local</option>
-      <option>Anywhere in Country</option>
-      <option>International</option>
-      <option>Remote</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Preferred Work Shift</label>
-    <select name="shift">
-      <option>Day</option>
-      <option>Night</option>
-      <option>Flexible</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Current Job Status</label>
-    <select name="job_status">
-      <option>Student</option>
-      <option>Unemployed</option>
-      <option>Employed</option>
-      <option>Freelancer</option>
-    </select>
-  </div>
-
-  <div class="field-row">
-    <div class="field">
-      <label>Salary expectation</label>
-      <input type="number" name="salary" placeholder="e.g. 500000">
-    </div>
-    <div class="field">
-      <label>Availability</label>
-      <select name="availability">
-        <option>Immediate</option>
-        <option>1 Month</option>
-        <option>3 Months</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- SKILLS -->
-  <div class="form-section-label">Skills & portfolio</div>
-  <div class="field">
-    <label>Skills</label>
-    <input type="text" name="skills" placeholder="Communication, Driving, Python, Nursing..." value="{{ skills }}">
-  </div>
-
-  <div class="field-row">
-    <div class="field">
-      <label>LinkedIn</label>
-      <input type="url" name="linkedin">
-    </div>
-    <div class="field">
-      <label>Portfolio / GitHub</label>
-      <input type="url" name="portfolio">
-    </div>
-  </div>
-
-  <!-- RESUME -->
-  <div class="form-section-label">Resume upload</div>
-  <div class="field">
-    <label class="file-upload-label seeker-upload" for="resume-input">
-      <span><strong>{{ 'Change Resume' if resume_path else 'Upload Resume' }}</strong></span>
-      <span class="file-name-display" id="resume-name">{{ resume_path.split('_', 1)[-1] if resume_path else 'No file chosen' }}</span>
-    </label>
-    <input type="file" name="resume" id="resume-input" accept=".pdf,.doc,.docx" style="display:none" required>
-    {% if resume_path %}
-    <p style="font-size: 11px; color: var(--primary); margin-top: 0.5rem; text-align: center;">✅ Resume successfully attached from previous step</p>
-    {% endif %}
-  </div>
-
-  <button type="submit" class="btn btn-primary btn-full">Create Seeker Account →</button>
-  <p class="auth-link">Already have an account? <a href="{{ url_for('login_seeker') }}">Sign in</a></p>
-</form>
-```
-
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-
 <script>
-document.getElementById('resume-input').addEventListener('change', function(){
-  document.getElementById('resume-name').textContent = this.files[0]?.name || 'No file chosen';
+let currentStep = 2;
+
+function updateProgressBar(step) {
+  // Reset all steps to default
+  document.querySelectorAll('.step-item').forEach((item, index) => {
+    const stepNum = index + 1;
+    item.classList.remove('active', 'completed');
+    
+    if (stepNum < step) {
+      item.classList.add('completed');
+    } else if (stepNum === step) {
+      item.classList.add('active');
+    }
+  });
+}
+
+function nextStep(step) {
+  // Basic validation for current step
+  const activeContent = document.querySelector('.step-content.active');
+  const requiredFields = activeContent.querySelectorAll('[required]');
+  let valid = true;
+  
+  requiredFields.forEach(field => {
+    if (!field.value) {
+      field.style.borderColor = '#ef4444';
+      valid = false;
+    } else {
+      field.style.borderColor = 'var(--border)';
+    }
+  });
+
+  if (!valid) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  // Transition
+  activeContent.classList.remove('active');
+  document.getElementById(`step-${step}`).classList.add('active');
+  currentStep = step;
+  updateProgressBar(step);
+  window.scrollTo(0, 0);
+}
+
+function prevStep(step) {
+  document.querySelector('.step-content.active').classList.remove('active');
+  document.getElementById(`step-${step}`).classList.add('active');
+  currentStep = step;
+  updateProgressBar(step);
+  window.scrollTo(0, 0);
+}
+
+function generateReview() {
+  const form = document.getElementById('application-form');
+  const formData = new FormData(form);
+  const container = document.getElementById('review-container');
+  
+  let html = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+      <div>
+        <h4 style="color:var(--primary); margin-bottom: 0.5rem; font-size: 12px; text-transform: uppercase;">Personal Information</h4>
+        <p><strong>Name:</strong> ${formData.get('first_name')} ${formData.get('last_name')}</p>
+        <p><strong>Email:</strong> ${formData.get('email')}</p>
+        <p><strong>Phone:</strong> ${formData.get('phone') || 'Not provided'}</p>
+      </div>
+      <div>
+        <h4 style="color:var(--primary); margin-bottom: 0.5rem; font-size: 12px; text-transform: uppercase;">Professional Background</h4>
+        <p><strong>Education:</strong> ${formData.get('education') || 'Not provided'}</p>
+        <p><strong>Experience:</strong> ${formData.get('experience_type')}</p>
+        <p><strong>Skills:</strong> ${formData.get('skills') || 'Not provided'}</p>
+      </div>
+    </div>
+    <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+       <h4 style="color:var(--primary); margin-bottom: 0.5rem; font-size: 12px; text-transform: uppercase;">Job Preferences</h4>
+       <p><strong>Field:</strong> ${formData.get('career_field')}</p>
+       <p><strong>Desired Roles:</strong> ${formData.get('desired_roles') || 'Any'}</p>
+       <p><strong>Salary:</strong> ${formData.get('salary') ? '$' + formData.get('salary') : 'Negotiable'}</p>
+    </div>
+  `;
+  
+  container.innerHTML = html;
+  nextStep(6);
+}
+
+// Bug Fix: Mapping verification on load
+window.addEventListener('DOMContentLoaded', () => {
+  const firstName = document.getElementById('field-first-name').value;
+  const lastName = document.getElementById('field-last-name').value;
+  const email = document.getElementById('field-email').value;
+  
+  console.log("Autofill Check:", { firstName, lastName, email });
+  
+  // If resume was skipped, we are on Step 2.
+  // If resume was uploaded, session data is already in values via Jinja2.
 });
 </script>
-
 {% endblock %}
