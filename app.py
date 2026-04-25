@@ -216,8 +216,11 @@ def register_seeker():
             dob=request.form.get("dob"),
             experience_type=request.form.get("experience_type"),
             career_field=request.form.get("career_field"),
-            job_status=request.form.get("job_status"),
+            job_status=request.form.get("job_status", "Searching"),
             job_location_type=request.form.get("job_location_type"),
+            desired_roles=request.form.get("desired_roles"),
+            salary_expectation=request.form.get("salary"),
+            availability=request.form.get("availability"),
             is_verified=True
         )
         db.session.add(new_seeker)
