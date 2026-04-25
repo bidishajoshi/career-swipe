@@ -1790,9 +1790,17 @@ body.light-mode .filter-input {
   .auth-form { padding: 1.5rem 1.25rem; }
   .field-row { grid-template-columns: 1fr; }
   
-  .applicant-card { flex-direction: column; gap: 1.25rem; }
-  .app-card-right { width: 100%; border-left: none; border-top: 1px solid var(--border); padding-top: 1rem; padding-left: 0; }
-  .app-actions { justify-content: flex-start; flex-wrap: wrap; }
+  .applicant-card { flex-direction: column; gap: 1.25rem; align-items: stretch; }
+  .app-card-right { 
+    width: 100%; 
+    border-left: none; 
+    border-top: 1px solid var(--border); 
+    padding-top: 1rem; 
+    padding-left: 0; 
+    align-items: flex-start; 
+  }
+  .app-skills, .app-actions { justify-content: flex-start; }
+  .app-time { margin-bottom: 4px; }
   
   .section-header h2 { font-size: 1.15rem; }
   .btn-sm { padding: 8px 16px; }
