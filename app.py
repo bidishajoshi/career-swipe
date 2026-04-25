@@ -151,8 +151,13 @@ def upload_resume_step():
                     "email": extracted_email,
                     "phone": extracted_data.get("phone", ""),
                     "address": extracted_data.get("address", ""),
+                    "gender": extracted_data.get("gender", "Other"),
+                    "dob": extracted_data.get("dob", ""),
                     "education": extracted_data.get("education", ""),
                     "experience": extracted_data.get("experience", ""),
+                    "experience_type": extracted_data.get("experience_type", "Full-time"),
+                    "career_field": extracted_data.get("career_field", "Other"),
+                    "job_location_type": extracted_data.get("job_location_type", "Local"),
                     "skills": extracted_skills,
                     "resume_path": resume_path
                 }
@@ -226,8 +231,13 @@ def register_seeker():
                            email=resume_data.get("email"),
                            phone=resume_data.get("phone"),
                            address=resume_data.get("address"),
+                           gender=resume_data.get("gender"),
+                           dob=resume_data.get("dob"),
                            education=resume_data.get("education"),
                            experience=resume_data.get("experience"),
+                           experience_type=resume_data.get("experience_type"),
+                           career_field=resume_data.get("career_field"),
+                           job_location_type=resume_data.get("job_location_type"),
                            skills=resume_data.get("skills"),
                            resume_path=resume_data.get("resume_path"))
 
