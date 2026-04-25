@@ -244,6 +244,31 @@ def process_resume(filepath, upload_folder):
         job_location_type = "Anywhere"
     print("LOCATION PREF:", job_location_type)
 
+    # Step 13: Desired Roles (Heuristic)
+    desired_roles = ""
+    # Look for "Objective" or "Profile" or just common job titles
+    job_titles = ["developer", "engineer", "manager", "analyst", "consultant", "designer", "teacher", "nurse", "accountant"]
+    for title in job_titles:
+        if title in text_lower:
+            desired_roles = title.capitalize()
+            break
+    print("DESIRED ROLES:", desired_roles)
+
+    # Step 14: Salary (Heuristic)
+    salary = ""
+    salary_match = re.search(r'(?:salary|expectation|expected).*?(\d+[,.]?\d+)', text_lower)
+    if salary_match:
+        salary = salary_match.group(1).replace(',', '')
+    print("SALARY:", salary)
+
+    # Step 15: Availability
+    availability = "Immediate"
+    if "1 month" in text_lower or "one month" in text_lower:
+        availability = "1 Month"
+    elif "3 month" in text_lower or "three month" in text_lower:
+        availability = "3 Months"
+    print("AVAILABILITY:", availability)
+
     # Split name for DB fields
     name_parts = full_name.split()
     first_name = name_parts[0] if len(name_parts) > 0 else "Unknown"
@@ -263,6 +288,10 @@ def process_resume(filepath, upload_folder):
         "experience_type": experience_type,
         "career_field": career_field,
         "job_location_type": job_location_type,
+        "desired_roles": desired_roles,
+        "employment_type": experience_type if experience_type != "No Experience" else "Full-time",
+        "salary": salary,
+        "availability": availability,
         "skills": skills_str,
         "resume_path": pdf_path or filepath
     }

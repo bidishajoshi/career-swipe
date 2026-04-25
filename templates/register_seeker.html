@@ -60,14 +60,14 @@
             <div class="field">
               <label>Gender</label>
               <select name="gender">
-                <option>Female</option>
-                <option>Male</option>
-                <option>Other</option>
+                <option {% if gender == 'Female' %}selected{% endif %}>Female</option>
+                <option {% if gender == 'Male' %}selected{% endif %}>Male</option>
+                <option {% if gender == 'Other' %}selected{% endif %}>Other</option>
               </select>
             </div>
             <div class="field">
               <label>Date of Birth</label>
-              <input type="date" name="dob">
+              <input type="date" name="dob" value="{{ dob }}">
             </div>
           </div>
 
@@ -121,11 +121,11 @@
           <div class="field">
             <label>Experience type</label>
             <select name="experience_type">
-              <option>Internship</option>
-              <option>Full-time</option>
-              <option>Part-time</option>
-              <option>Freelance</option>
-              <option>No Experience</option>
+              <option {% if experience_type == 'Internship' %}selected{% endif %}>Internship</option>
+              <option {% if experience_type == 'Full-time' %}selected{% endif %}>Full-time</option>
+              <option {% if experience_type == 'Part-time' %}selected{% endif %}>Part-time</option>
+              <option {% if experience_type == 'Freelance' %}selected{% endif %}>Freelance</option>
+              <option {% if experience_type == 'No Experience' %}selected{% endif %}>No Experience</option>
             </select>
           </div>
 
@@ -164,16 +164,16 @@
           <div class="field">
             <label>Career Field / Industry</label>
             <select name="career_field">
-              <option>IT / Software</option>
-              <option>Business / Management</option>
-              <option>Finance / Accounting</option>
-              <option>Healthcare / Medical</option>
-              <option>Engineering</option>
-              <option>Education / Teaching</option>
-              <option>Marketing / Sales</option>
-              <option>Design / Creative</option>
-              <option>Hospitality / Tourism</option>
-              <option>Other</option>
+              <option {% if career_field == 'IT / Software' %}selected{% endif %}>IT / Software</option>
+              <option {% if career_field == 'Business / Management' %}selected{% endif %}>Business / Management</option>
+              <option {% if career_field == 'Finance / Accounting' %}selected{% endif %}>Finance / Accounting</option>
+              <option {% if career_field == 'Healthcare / Medical' %}selected{% endif %}>Healthcare / Medical</option>
+              <option {% if career_field == 'Engineering' %}selected{% endif %}>Engineering</option>
+              <option {% if career_field == 'Education / Teaching' %}selected{% endif %}>Education / Teaching</option>
+              <option {% if career_field == 'Marketing / Sales' %}selected{% endif %}>Marketing / Sales</option>
+              <option {% if career_field == 'Design / Creative' %}selected{% endif %}>Design / Creative</option>
+              <option {% if career_field == 'Hospitality / Tourism' %}selected{% endif %}>Hospitality / Tourism</option>
+              <option {% if career_field == 'Other' %}selected{% endif %}>Other</option>
             </select>
           </div>
 
@@ -195,9 +195,9 @@
             <div class="field">
               <label>Preferred Job Location</label>
               <select name="job_location_type">
-                <option>Local</option>
-                <option>Anywhere</option>
-                <option>Remote</option>
+                <option {% if job_location_type == 'Local' %}selected{% endif %}>Local</option>
+                <option {% if job_location_type == 'Anywhere' %}selected{% endif %}>Anywhere</option>
+                <option {% if job_location_type == 'Remote' %}selected{% endif %}>Remote</option>
               </select>
             </div>
           </div>
