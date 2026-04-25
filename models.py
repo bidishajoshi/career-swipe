@@ -26,6 +26,10 @@ class Seeker(db.Model):
     job_status = db.Column(db.String(50))           # searching / employed / open to offers
     job_location_type = db.Column(db.String(50))    # remote / onsite / hybrid
     shift_preference = db.Column(db.String(50))     # day / night / flexible
+    
+    desired_roles = db.Column(db.String(255))
+    salary_expectation = db.Column(db.String(100))
+    availability = db.Column(db.String(100))
 
     verification_token = db.Column(db.String(100))
     is_verified = db.Column(db.Boolean, default=False)
