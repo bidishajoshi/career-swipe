@@ -150,22 +150,99 @@ def process_resume(filepath, upload_folder):
             break
     print("ADDRESS:", address)
 
-    # Step 6: Extract Education & Experience (Basic)
-    education = ""
-    experience = ""
-    
-    # Simple keyword search
-    for i, line in enumerate(lines):
-        line_lower = line.lower()
-        if not education and ("education" in line_lower or "academic" in line_lower):
-            if i + 1 < len(lines): education = lines[i+1]
-        if not experience and ("experience" in line_lower or "work history" in line_lower):
-            if i + 1 < len(lines): experience = lines[i+1]
+    # Step 6: Extract Gender (Heuristic)
+    gender = "Other"
+    male_keywords = ["mr.", "he/him", "male"]
+    female_keywords = ["ms.", "mrs.", "she/her", "female"]
+    text_lower = text.lower()
+    if any(kw in text_lower for kw in female_keywords):
+        gender = "Female"
+    elif any(kw in text_lower for kw in male_keywords):
+        gender = "Male"
+    print("GENDER:", gender)
 
-    # Step 7: Extract Skills
+    # Step 7: Extract Date of Birth
+    dob = ""
+    dob_match = re.search(r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})|((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{1,2},?\s\d{4})', text, re.IGNORECASE)
+    if dob_match:
+        dob = dob_match.group(0)
+    print("DOB:", dob)
+
+    # Step 8: Section-based Extraction (Education & Experience)
+    sections = {
+        "education": ["education", "academic", "qualifications", "schooling"],
+        "experience": ["experience", "work history", "employment", "professional background", "projects"],
+        "skills": ["skills", "technical skills", "competencies", "expertise"]
+    }
+    
+    extracted_sections = {"education": [], "experience": [], "skills_section": []}
+    current_section = None
+    
+    for line in lines:
+        line_lower = line.lower()
+        is_header = False
+        for sec, keywords in sections.items():
+            if any(kw == line_lower.strip(':') for kw in keywords) or (len(line_lower) < 20 and any(kw in line_lower for kw in keywords)):
+                current_section = sec
+                is_header = True
+                break
+        
+        if not is_header and current_section:
+            if current_section == "skills":
+                extracted_sections["skills_section"].append(line)
+            else:
+                extracted_sections[current_section].append(line)
+
+    education = "\n".join(extracted_sections["education"][:5]) # Take first 5 lines of education
+    experience = "\n".join(extracted_sections["experience"][:10]) # Take first 10 lines of experience
+    
+    # Step 9: Extract Skills (List-based + Section-based)
     found_skills = [s.capitalize() for s in SKILLS_LIST if s in text.lower()]
+    # Also add skills found in the skills section if they aren't in our list
+    if extracted_sections["skills_section"]:
+        section_skills = ", ".join(extracted_sections["skills_section"])
+        # Simple split by comma or newline for section skills
+        additional_skills = [s.strip() for s in re.split(r'[,|\n]', section_skills) if s.strip()]
+        for s in additional_skills[:10]:
+            if s.capitalize() not in found_skills and len(s) < 30:
+                found_skills.append(s.capitalize())
+                
     skills_str = ", ".join(found_skills)
     print("SKILLS:", skills_str)
+
+    # Step 10: Experience Type (Heuristic)
+    experience_type = "Full-time"
+    if "intern" in text_lower:
+        experience_type = "Internship"
+    elif "freelance" in text_lower:
+        experience_type = "Freelance"
+    elif not experience.strip():
+        experience_type = "No Experience"
+    print("EXP TYPE:", experience_type)
+
+    # Step 11: Career Field (Heuristic)
+    career_field = "Other"
+    field_keywords = {
+        "IT / Software": ["python", "java", "software", "developer", "engineer", "it", "coding", "programming"],
+        "Marketing / Sales": ["marketing", "sales", "brand", "advertising", "seo"],
+        "Finance / Accounting": ["finance", "accounting", "bank", "audit", "tax"],
+        "Healthcare / Medical": ["nurse", "doctor", "medical", "health", "hospital"],
+        "Education / Teaching": ["teacher", "professor", "tutor", "education", "school"],
+        "Design / Creative": ["design", "graphic", "creative", "ui", "ux", "artist"]
+    }
+    for field, kws in field_keywords.items():
+        if any(kw in text_lower for kw in kws):
+            career_field = field
+            break
+    print("CAREER FIELD:", career_field)
+
+    # Step 12: Job Location Type
+    job_location_type = "Local"
+    if "remote" in text_lower:
+        job_location_type = "Remote"
+    elif "anywhere" in text_lower or "relocate" in text_lower:
+        job_location_type = "Anywhere"
+    print("LOCATION PREF:", job_location_type)
 
     # Split name for DB fields
     name_parts = full_name.split()
@@ -179,8 +256,14 @@ def process_resume(filepath, upload_folder):
         "email": email,
         "phone": phone,
         "address": address,
+        "gender": gender,
+        "dob": dob,
         "education": education,
         "experience": experience,
+        "experience_type": experience_type,
+        "career_field": career_field,
+        "job_location_type": job_location_type,
         "skills": skills_str,
         "resume_path": pdf_path or filepath
     }
+
