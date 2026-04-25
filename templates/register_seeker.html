@@ -179,17 +179,17 @@
 
           <div class="field">
             <label>Desired job roles</label>
-            <input type="text" name="desired_roles" placeholder="Any role (Developer, Manager...)">
+            <input type="text" name="desired_roles" placeholder="Any role (Developer, Manager...)" value="{{ desired_roles }}">
           </div>
 
           <div class="field-row">
             <div class="field">
               <label>Preferred employment type</label>
               <select name="employment_type">
-                <option>Full-time</option>
-                <option>Part-time</option>
-                <option>Internship</option>
-                <option>Contract</option>
+                <option {% if employment_type == 'Full-time' %}selected{% endif %}>Full-time</option>
+                <option {% if employment_type == 'Part-time' %}selected{% endif %}>Part-time</option>
+                <option {% if employment_type == 'Internship' %}selected{% endif %}>Internship</option>
+                <option {% if employment_type == 'Contract' %}selected{% endif %}>Contract</option>
               </select>
             </div>
             <div class="field">
@@ -205,14 +205,14 @@
           <div class="field-row">
             <div class="field">
               <label>Salary expectation (Annual)</label>
-              <input type="number" name="salary" placeholder="e.g. 500000">
+              <input type="number" name="salary" placeholder="e.g. 500000" value="{{ salary }}">
             </div>
             <div class="field">
               <label>Availability</label>
               <select name="availability">
-                <option>Immediate</option>
-                <option>1 Month</option>
-                <option>3 Months</option>
+                <option {% if availability == 'Immediate' %}selected{% endif %}>Immediate</option>
+                <option {% if availability == '1 Month' %}selected{% endif %}>1 Month</option>
+                <option {% if availability == '3 Months' %}selected{% endif %}>3 Months</option>
               </select>
             </div>
           </div>
