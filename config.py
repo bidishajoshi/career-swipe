@@ -14,7 +14,7 @@ class Config:
         # Render provides DATABASE_URL starting with postgres://, SQLAlchemy requires postgresql://
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL or "sqlite:///careerswipe.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///careerswipe.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Production-safe connection settings
