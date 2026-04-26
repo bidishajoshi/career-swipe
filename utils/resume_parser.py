@@ -159,13 +159,23 @@ def process_resume(filepath, upload_folder):
     phone_match = re.search(phone_regex, text)
     phone = phone_match.group(0) if phone_match else ""
 
-    # Step 4: Address
+    # Step 4: Address (Robust)
     address = ""
-    addr_keywords = ['Street', 'St.', 'Lane', 'Ln', 'Road', 'Rd', 'Avenue', 'Ave', 'Drive', 'Dr', 'Kathmandu', 'Nepal', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'City']
-    for line in lines[:30]:
-        if any(kw in line for kw in addr_keywords) or re.search(r'\d{5,6}', line):
-            address = line
-            break
+    # Try label first
+    addr_label_match = re.search(r'(?:address|location|lives\s?in)[:\s]+([^\n]{5,100})', text, re.IGNORECASE)
+    if addr_label_match:
+        address = addr_label_match.group(1).strip()
+    else:
+        addr_keywords = ['Street', 'St.', 'Lane', 'Ln', 'Road', 'Rd', 'Avenue', 'Ave', 'Drive', 'Dr', 'Kathmandu', 'Nepal', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'City', 'Province', 'State']
+        for i, line in enumerate(lines[:40]):
+            if any(kw in line for kw in addr_keywords) or re.search(r'\b\d{5,6}\b', line):
+                # Check if it's not just a phone number
+                if not re.match(r'^\+?[\d\s-]{10,15}$', line.strip()):
+                    address = line
+                    # Optionally append next line if it looks like part of address
+                    if i + 1 < len(lines) and any(kw in lines[i+1] for kw in ['Nepal', 'USA', 'UK', 'City']):
+                        address += ", " + lines[i+1]
+                    break
 
     # Step 5: Date of Birth (Improved)
     dob = ""
