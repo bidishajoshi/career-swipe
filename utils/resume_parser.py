@@ -5,6 +5,38 @@ import uuid
 import pdfplumber
 from docx import Document
 
+def normalize_date(date_str):
+    """Converts various date formats to YYYY-MM-DD for HTML date inputs."""
+    if not date_str:
+        return ""
+    
+    # Clean input
+    date_str = date_str.strip().lower()
+    
+    # Try DD/MM/YYYY or MM/DD/YYYY
+    match = re.search(r'(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})', date_str)
+    if match:
+        d1, d2, year = match.groups()
+        if len(year) == 2:
+            year = "19" + year if int(year) > 40 else "20" + year
+        
+        # Heuristic for DD/MM vs MM/DD
+        try:
+            day, month = (int(d1), int(d2)) if int(d1) > 12 else (int(d1), int(d2))
+            return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+        except:
+            return ""
+
+    # Try Month DD, YYYY
+    months = {'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6, 'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12}
+    match = re.search(r'([a-z]+)\s+(\d{1,2}),?\s+(\d{4})', date_str)
+    if match:
+        mon_str, day, year = match.groups()
+        mon = months.get(mon_str[:3], 1)
+        return f"{int(year):04d}-{int(mon):02d}-{int(day):02d}"
+
+    return ""
+
 # Core skills list for matching (Expanded)
 SKILLS_LIST = [
     "python", "java", "sql", "html", "css", "javascript", "react", "flask", "django", "node", "aws",
@@ -92,184 +124,128 @@ def process_resume(filepath, upload_folder):
         }
 
     lines = [l.strip() for l in text.split("\n") if l.strip()]
+    text_lower = text.lower()
     
     # Step 2: Extract Name (Improved)
     ignore_keywords = ["curriculum", "vitae", "resume", "page", "profile", "contact", "summary", "experience", "education", "skills", "objective"]
     full_name = "Unknown Candidate"
     
-    for line in lines[:20]: # Look in first 20 non-empty lines
+    for line in lines[:15]:
         clean_line = line.strip()
-        
-        # Skip if line is too long or too short
         word_count = len(clean_line.split())
-        if word_count > 5 or word_count < 1:
-            continue
-            
-        # Skip if it contains ignore keywords or numbers (like phone/address)
+        if word_count > 5 or word_count < 1: continue
         if any(kw in clean_line.lower() for kw in ignore_keywords) or any(char.isdigit() for char in clean_line):
             continue
-            
-        # Check if it looks like a name (Capitalized words)
         words = clean_line.split()
         if all(w[0].isupper() or (len(w) > 1 and w[1] == '.') for w in words if any(c.isalpha() for c in w)):
-            # Final check: shouldn't be all caps usually (some resumes do it, but let's be careful)
-            if clean_line.isupper() and word_count == 1:
-                continue
-            
-            # Strip common labels
             name_to_clean = clean_line
             for label in ["Name:", "Full Name:", "Candidate Name:"]:
                 if name_to_clean.lower().startswith(label.lower()):
                     name_to_clean = name_to_clean[len(label):].strip()
-            
             full_name = name_to_clean
             break
-            
-    print("NAME FOUND:", full_name)
 
-    # Step 3: Extract Email
+    # Step 3: Extract Contact Info
     email_match = re.search(r'[\w.-]+@[\w.-]+', text)
     email = email_match.group(0) if email_match else ""
-    print("EMAIL:", email)
-
-    # Step 4: Extract Phone
+    
     phone_regex = r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\+?\d{10,13}'
     phone_match = re.search(phone_regex, text)
     phone = phone_match.group(0) if phone_match else ""
-    print("PHONE:", phone)
 
-    # Step 5: Extract Address (Heuristic)
+    # Step 4: Address
     address = ""
-    addr_keywords = [
-        'Street', 'St.', 'Lane', 'Ln', 'Road', 'Rd', 'Avenue', 'Ave', 'Drive', 'Dr', 'Boulevard', 'Blvd', 'Postal', 'Zip',
-        'Kathmandu', 'Nepal', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'City', 'District'
-    ]
-    for line in lines[:25]: # Look a bit deeper
+    addr_keywords = ['Street', 'St.', 'Lane', 'Ln', 'Road', 'Rd', 'Avenue', 'Ave', 'Drive', 'Dr', 'Kathmandu', 'Nepal', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'City']
+    for line in lines[:30]:
         if any(kw in line for kw in addr_keywords) or re.search(r'\d{5,6}', line):
             address = line
             break
-    print("ADDRESS:", address)
 
-    # Step 6: Extract Gender (Heuristic)
-    gender = "Other"
-    male_keywords = ["mr.", "he/him", "male"]
-    female_keywords = ["ms.", "mrs.", "she/her", "female"]
-    text_lower = text.lower()
-    if any(kw in text_lower for kw in female_keywords):
-        gender = "Female"
-    elif any(kw in text_lower for kw in male_keywords):
-        gender = "Male"
-    print("GENDER:", gender)
-
-    # Step 7: Extract Date of Birth
+    # Step 5: Date of Birth (Improved)
     dob = ""
-    dob_match = re.search(r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})|((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{1,2},?\s\d{4})', text, re.IGNORECASE)
-    if dob_match:
-        dob = dob_match.group(0)
-    print("DOB:", dob)
+    dob_label_match = re.search(r'(?:dob|date of birth|birth\s?date|born)[:\s]*([\d\w\s,/-]+)', text, re.IGNORECASE)
+    if dob_label_match:
+        potential_dob = dob_label_match.group(1).strip().split('\n')[0]
+        dob = normalize_date(potential_dob)
+    
+    if not dob:
+        # Fallback search for date that looks like a birth year
+        dob_match = re.search(r'(\d{1,2}[-/]\d{1,2}[-/](?:19|20)\d{2})', text)
+        if dob_match:
+            dob = normalize_date(dob_match.group(0))
 
-    # Step 8: Section-based Extraction (Education & Experience)
-    sections = {
-        "education": ["education", "academic", "qualifications", "schooling"],
-        "experience": ["experience", "work history", "employment", "professional background", "projects"],
-        "skills": ["skills", "technical skills", "competencies", "expertise"]
+    # Step 6: Sections (Education & Experience)
+    sections_map = {
+        "education": [r"education", r"academic", r"qualifications", r"schooling", r"university", r"college"],
+        "experience": [r"experience", r"work history", r"employment", r"professional background", r"projects", r"work experience"],
+        "skills": [r"skills", r"technical skills", r"competencies", r"expertise", r"technologies"]
     }
     
-    extracted_sections = {"education": [], "experience": [], "skills_section": []}
+    extracted_data = {"education": [], "experience": [], "skills": []}
     current_section = None
     
     for line in lines:
-        line_lower = line.lower()
+        line_clean = line.strip().lower().strip(':')
         is_header = False
-        for sec, keywords in sections.items():
-            if any(kw == line_lower.strip(':') for kw in keywords) or (len(line_lower) < 20 and any(kw in line_lower for kw in keywords)):
+        for sec, patterns in sections_map.items():
+            if any(re.fullmatch(p, line_clean) for p in patterns) or (len(line_clean) < 25 and any(p in line_clean for p in patterns) and (line.isupper() or line.endswith(':'))):
                 current_section = sec
                 is_header = True
                 break
         
         if not is_header and current_section:
-            if current_section == "skills":
-                extracted_sections["skills_section"].append(line)
-            else:
-                extracted_sections[current_section].append(line)
+            extracted_data[current_section].append(line)
 
-    education = "\n".join(extracted_sections["education"][:5]) # Take first 5 lines of education
-    experience = "\n".join(extracted_sections["experience"][:10]) # Take first 10 lines of experience
+    # Clean up Education (Find highest qualification)
+    edu_text = "\n".join(extracted_data["education"])
+    highest_qual = ""
+    degree_patterns = [
+        r"ph\.?d", r"master's", r"bachelor's", r"m\.?s\.?c", r"b\.?s\.?c", r"m\.?b\.?a", 
+        r"b\.?e", r"b\.?tech", r"m\.?tech", r"b\.?a", r"m\.?a", r"diploma", r"h\.?s\.?e\.?b"
+    ]
+    for pattern in degree_patterns:
+        match = re.search(pattern, edu_text, re.IGNORECASE)
+        if match:
+            for line in extracted_data["education"]:
+                if re.search(pattern, line, re.IGNORECASE):
+                    highest_qual = line
+                    break
+            if highest_qual: break
     
-    # Step 9: Extract Skills (List-based + Section-based)
-    found_skills = [s.capitalize() for s in SKILLS_LIST if s in text.lower()]
-    # Also add skills found in the skills section if they aren't in our list
-    if extracted_sections["skills_section"]:
-        section_skills = ", ".join(extracted_sections["skills_section"])
-        # Simple split by comma or newline for section skills
-        additional_skills = [s.strip() for s in re.split(r'[,|\n]', section_skills) if s.strip()]
-        for s in additional_skills[:10]:
-            if s.capitalize() not in found_skills and len(s) < 30:
-                found_skills.append(s.capitalize())
-                
+    if not highest_qual and extracted_data["education"]:
+        highest_qual = extracted_data["education"][0]
+
+    experience_summary = "\n".join(extracted_data["experience"][:15])
+    
+    # Step 7: Skills
+    found_skills = [s.capitalize() for s in SKILLS_LIST if re.search(rf'\b{re.escape(s)}\b', text_lower)]
+    if extracted_data["skills"]:
+        additional = [s.strip().capitalize() for s in re.split(r'[,|\n•]', " ".join(extracted_data["skills"])) if 2 < len(s.strip()) < 30]
+        for s in additional[:15]:
+            if s not in found_skills: found_skills.append(s)
+    
     skills_str = ", ".join(found_skills)
-    print("SKILLS:", skills_str)
 
-    # Step 10: Experience Type (Heuristic)
+    # Step 8: Heuristics
     experience_type = "Full-time"
-    if "intern" in text_lower:
-        experience_type = "Internship"
-    elif "freelance" in text_lower:
-        experience_type = "Freelance"
-    elif not experience.strip():
-        experience_type = "No Experience"
-    print("EXP TYPE:", experience_type)
+    if "intern" in text_lower: experience_type = "Internship"
+    elif "freelance" in text_lower: experience_type = "Freelance"
+    elif not experience_summary.strip(): experience_type = "No Experience"
 
-    # Step 11: Career Field (Heuristic)
     career_field = "Other"
     field_keywords = {
-        "IT / Software": ["python", "java", "software", "developer", "engineer", "it", "coding", "programming"],
-        "Marketing / Sales": ["marketing", "sales", "brand", "advertising", "seo"],
-        "Finance / Accounting": ["finance", "accounting", "bank", "audit", "tax"],
-        "Healthcare / Medical": ["nurse", "doctor", "medical", "health", "hospital"],
-        "Education / Teaching": ["teacher", "professor", "tutor", "education", "school"],
-        "Design / Creative": ["design", "graphic", "creative", "ui", "ux", "artist"]
+        "IT / Software": ["python", "java", "software", "developer", "engineer", "it", "coding", "programming", "react", "node"],
+        "Marketing / Sales": ["marketing", "sales", "brand", "advertising", "seo", "digital marketing"],
+        "Finance / Accounting": ["finance", "accounting", "bank", "audit", "tax", "ca", "accas"],
+        "Healthcare / Medical": ["nurse", "doctor", "medical", "health", "hospital", "mbbs"],
+        "Education / Teaching": ["teacher", "professor", "tutor", "education", "school", "lecturer"],
+        "Design / Creative": ["design", "graphic", "creative", "ui", "ux", "artist", "photoshop"]
     }
     for field, kws in field_keywords.items():
         if any(kw in text_lower for kw in kws):
             career_field = field
             break
-    print("CAREER FIELD:", career_field)
 
-    # Step 12: Job Location Type
-    job_location_type = "Local"
-    if "remote" in text_lower:
-        job_location_type = "Remote"
-    elif "anywhere" in text_lower or "relocate" in text_lower:
-        job_location_type = "Anywhere"
-    print("LOCATION PREF:", job_location_type)
-
-    # Step 13: Desired Roles (Heuristic)
-    desired_roles = ""
-    # Look for "Objective" or "Profile" or just common job titles
-    job_titles = ["developer", "engineer", "manager", "analyst", "consultant", "designer", "teacher", "nurse", "accountant"]
-    for title in job_titles:
-        if title in text_lower:
-            desired_roles = title.capitalize()
-            break
-    print("DESIRED ROLES:", desired_roles)
-
-    # Step 14: Salary (Heuristic)
-    salary = ""
-    salary_match = re.search(r'(?:salary|expectation|expected).*?(\d+[,.]?\d+)', text_lower)
-    if salary_match:
-        salary = salary_match.group(1).replace(',', '')
-    print("SALARY:", salary)
-
-    # Step 15: Availability
-    availability = "Immediate"
-    if "1 month" in text_lower or "one month" in text_lower:
-        availability = "1 Month"
-    elif "3 month" in text_lower or "three month" in text_lower:
-        availability = "3 Months"
-    print("AVAILABILITY:", availability)
-
-    # Split name for DB fields
     name_parts = full_name.split()
     first_name = name_parts[0] if len(name_parts) > 0 else "Unknown"
     last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "Candidate"
@@ -281,17 +257,17 @@ def process_resume(filepath, upload_folder):
         "email": email,
         "phone": phone,
         "address": address,
-        "gender": gender,
+        "gender": "Female" if any(kw in text_lower for kw in ["ms.", "mrs.", "she/her", "female"]) else ("Male" if any(kw in text_lower for kw in ["mr.", "he/him", "male"]) else "Other"),
         "dob": dob,
-        "education": education,
-        "experience": experience,
+        "education": highest_qual,
+        "experience": experience_summary,
         "experience_type": experience_type,
         "career_field": career_field,
-        "job_location_type": job_location_type,
-        "desired_roles": desired_roles,
+        "job_location_type": "Remote" if "remote" in text_lower else ("Anywhere" if any(kw in text_lower for kw in ["anywhere", "relocate"]) else "Local"),
+        "desired_roles": next((t.capitalize() for t in ["developer", "engineer", "manager", "analyst", "consultant", "designer", "teacher", "nurse", "accountant"] if t in text_lower), ""),
         "employment_type": experience_type if experience_type != "No Experience" else "Full-time",
-        "salary": salary,
-        "availability": availability,
+        "salary": (re.search(r'(?:salary|expectation|expected).*?(\d+[,.]?\d+)', text_lower).group(1).replace(',', '') if re.search(r'(?:salary|expectation|expected).*?(\d+[,.]?\d+)', text_lower) else ""),
+        "availability": "1 Month" if any(kw in text_lower for kw in ["1 month", "one month"]) else ("3 Months" if any(kw in text_lower for kw in ["3 month", "three month"]) else "Immediate"),
         "skills": skills_str,
         "resume_path": pdf_path or filepath
     }
