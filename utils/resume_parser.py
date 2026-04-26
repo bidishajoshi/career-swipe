@@ -126,24 +126,30 @@ def process_resume(filepath, upload_folder):
     lines = [l.strip() for l in text.split("\n") if l.strip()]
     text_lower = text.lower()
     
-    # Step 2: Extract Name (Improved)
-    ignore_keywords = ["curriculum", "vitae", "resume", "page", "profile", "contact", "summary", "experience", "education", "skills", "objective"]
+    # Step 2: Extract Name (Robust)
+    ignore_keywords = ["curriculum", "vitae", "resume", "page", "profile", "contact", "summary", "experience", "education", "skills", "objective", "header"]
     full_name = "Unknown Candidate"
     
-    for line in lines[:15]:
-        clean_line = line.strip()
-        word_count = len(clean_line.split())
-        if word_count > 5 or word_count < 1: continue
-        if any(kw in clean_line.lower() for kw in ignore_keywords) or any(char.isdigit() for char in clean_line):
-            continue
-        words = clean_line.split()
-        if all(w[0].isupper() or (len(w) > 1 and w[1] == '.') for w in words if any(c.isalpha() for c in w)):
-            name_to_clean = clean_line
-            for label in ["Name:", "Full Name:", "Candidate Name:"]:
-                if name_to_clean.lower().startswith(label.lower()):
-                    name_to_clean = name_to_clean[len(label):].strip()
-            full_name = name_to_clean
-            break
+    # Try finding label first
+    name_label_match = re.search(r'(?:name|full\s?name|candidate)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)', text)
+    if name_label_match:
+        full_name = name_label_match.group(1).strip()
+    else:
+        for line in lines[:25]:
+            clean_line = line.strip()
+            # Skip common header labels
+            if any(kw in clean_line.lower() for kw in ignore_keywords): continue
+            
+            # Name heuristic: 2-4 capitalized words, no common symbols except dot
+            if re.match(r'^[A-Z][a-zA-Z.]+(?:\s+[A-Z][a-zA-Z.]+){1,3}$', clean_line):
+                full_name = clean_line
+                break
+            
+            # If name is followed by contact info on same line
+            head_match = re.match(r'^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s*[|•,-]', clean_line)
+            if head_match:
+                full_name = head_match.group(1).strip()
+                break
 
     # Step 3: Extract Contact Info
     email_match = re.search(r'[\w.-]+@[\w.-]+', text)
@@ -257,7 +263,9 @@ def process_resume(filepath, upload_folder):
         "email": email,
         "phone": phone,
         "address": address,
-        "gender": "Female" if any(kw in text_lower for kw in ["ms.", "mrs.", "she/her", "female"]) else ("Male" if any(kw in text_lower for kw in ["mr.", "he/him", "male"]) else "Other"),
+        "gender": (re.search(r'(?:gender|sex)[:\s]+(male|female|other)', text_lower).group(1).capitalize() if re.search(r'(?:gender|sex)[:\s]+(male|female|other)', text_lower) else 
+                   ("Female" if any(kw in text_lower for kw in ["ms.", "mrs.", "she/her", "female"]) else 
+                    ("Male" if any(kw in text_lower for kw in ["mr.", "he/him", "male"]) else "Other"))),
         "dob": dob,
         "education": highest_qual,
         "experience": experience_summary,
