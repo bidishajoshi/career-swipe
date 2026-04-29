@@ -15,6 +15,7 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "careerswipe-dev-secret-2026-CHANGE-ME")
 
     # ── Database ──────────────────────────────────────────────────────────────
+<<<<<<< HEAD
     # Render provides DATABASE_URL starting with "postgres://"; SQLAlchemy
     # requires "postgresql://". The replace() call fixes this automatically.
     _raw_db_url = os.getenv("DATABASE_URL", "")
@@ -22,6 +23,16 @@ class Config:
         _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
 
     SQLALCHEMY_DATABASE_URI = _raw_db_url or "sqlite:///careerswipe.db"
+=======
+    # Use DATABASE_URL if available (Production/Render), otherwise fallback to SQLite
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    
+    if DATABASE_URL:
+        # Render provides DATABASE_URL starting with postgres://, SQLAlchemy requires postgresql://
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    
+    SQLALCHEMY_DATABASE_URI = "sqlite:///careerswipe.db"
+>>>>>>> 0efc52e11ad24bba034cbd3d7443d82aa273e3be
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Connection pool settings – safe for both SQLite and PostgreSQL
