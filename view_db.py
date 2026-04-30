@@ -3,6 +3,13 @@
 import os
 from app import app, db
 from models import Seeker, Company, JobListing, JobSwipe, Notification
+# view_db.py
+from app import create_app, db
+
+app = create_app()
+
+with app.app_context():
+    print(db.engine.table_names())
 
 def safe_getattr(obj, attr):
     """Safely get attribute, returns N/A if doesn't exist"""
