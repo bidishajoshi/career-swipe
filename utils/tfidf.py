@@ -40,6 +40,62 @@ SKILL_TERMS = {
     "statistics", "staad pro", "swift", "tableau", "teaching", "testing",
     "typescript", "ui", "ux", "vue", "writing"
 }
+FIELD_KEYWORDS = {
+    "IT / Software": [
+        "python", "java", "javascript", "react", "django",
+        "flask", "developer", "software", "programming",
+        "sql", "aws", "azure", "devops"
+    ],
+
+    "Healthcare / Medical": [
+        "nurse", "doctor", "hospital", "medical",
+        "patient care", "clinic", "pharmacy",
+        "healthcare", "radiology"
+    ],
+
+    "Finance / Accounting": [
+        "accounting", "finance", "audit",
+        "tax", "banking", "bookkeeping",
+        "excel", "payroll", "budgeting"
+    ],
+"Engineering": [
+    "civil engineer",
+    "civil engineering",
+    "site engineer",
+    "site supervisor",
+    "structural engineer",
+    "construction engineer",
+    "project engineer",
+    "quantity surveyor",
+    "autocad",
+    "staad pro",
+    "etabs",
+    "surveying",
+    "construction",
+    "road design",
+    "bridge",
+    "building",
+    "structural",
+    "engineering"
+],
+
+    "Marketing / Sales": [
+        "marketing", "sales", "seo",
+        "digital marketing", "advertising",
+        "branding", "crm"
+    ],
+
+    "Education / Teaching": [
+        "teacher", "lecturer", "education",
+        "training", "curriculum", "school"
+    ],
+
+    "Administration": [
+        "administration", "office",
+        "data entry", "excel",
+        "documentation", "secretary"
+    ]
+}
 
 QUALIFICATION_TERMS = {
     "bachelor", "master", "phd", "doctorate", "diploma", "certificate",
@@ -117,11 +173,46 @@ def extract_skills(text: str, extra_terms: str = "") -> list[str]:
     return sorted(found)
 
 
+# ===========================
+# CAREER FIELD DETECTION
+# ===========================
+def detect_career_field(text):
+    text = text.lower()
+
+    best_field = "Other"
+    best_score = 0
+
+    for field, keywords in FIELD_KEYWORDS.items():
+        score = sum(1 for kw in keywords if kw in text)
+
+        if score > best_score:
+            best_score = score
+            best_field = field
+
+    return best_field
+
+
 def extract_keywords(text: str, top_n: int = 15) -> list[str]:
     """Extract high-signal keywords from text after preprocessing."""
     tokens = clean_text(text)
     if not tokens:
         return []
+
+    counts = Counter(tokens)
+    weighted = {}
+
+    for token, count in counts.items():
+        weight = 3 if token in SKILL_TERMS else 1
+        weighted[token] = count * weight
+
+    return [
+        term
+        for term, _ in sorted(
+            weighted.items(),
+            key=lambda item: item[1],
+            reverse=True
+        )[:top_n]
+    ]
 
     counts = Counter(tokens)
     weighted = {}
@@ -178,42 +269,84 @@ def _weighted_document(text: str, skills: list[str]) -> str:
     return f"{preprocess_text(text)} {weighted_skills}".strip()
 
 
-def recommend_jobs_for_resume(seeker, resume_text: str, jobs: list, limit: int | None = None) -> list[dict]:
-    """Rank jobs by TF-IDF cosine similarity and skill coverage."""
+def recommend_jobs_for_resume(seeker, resume_text, jobs, limit=None):
     if not jobs:
         return []
 
     profile = build_resume_profile(seeker, resume_text)
     resume_doc = _weighted_document(profile["text"], profile["skills"])
+
     if not resume_doc:
         return []
 
+    career_field = detect_career_field(profile["text"])
+
     job_docs = []
     job_skills = {}
+
     for job in jobs:
         skills = extract_skills(job_to_text(job), job.required_skills or "")
         job_skills[job.id] = skills
         job_docs.append(_weighted_document(job_to_text(job), skills))
 
-    vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), min_df=1)
+    vectorizer = TfidfVectorizer(
+        stop_words="english",
+        ngram_range=(1, 2),
+        min_df=1
+    )
+
     matrix = vectorizer.fit_transform([resume_doc] + job_docs)
-    similarities = cosine_similarity(matrix[0:1], matrix[1:]).flatten()
+    similarities = cosine_similarity(
+        matrix[0:1],
+        matrix[1:]
+    ).flatten()
 
     recommendations = []
+
     resume_skill_set = set(profile["skills"])
     resume_keyword_set = set(profile["keywords"])
 
     for job, similarity in zip(jobs, similarities):
+
+        job_field = detect_career_field(job_to_text(job))
+
+        field_bonus = 0.15 if job_field == career_field else 0
+
         required_skills = set(job_skills.get(job.id, []))
-        matched_skills = sorted(required_skills & resume_skill_set)
-        missing_skills = sorted(required_skills - resume_skill_set)
+
+        matched_skills = sorted(
+            required_skills & resume_skill_set
+        )
+
+        missing_skills = sorted(
+            required_skills - resume_skill_set
+        )
+
         recommended_skills = missing_skills[:6]
 
-        skill_score = (len(matched_skills) / len(required_skills)) if required_skills else 0
-        keyword_overlap = len(set(extract_keywords(job_to_text(job), 20)) & resume_keyword_set)
+        skill_score = (
+            len(matched_skills) / len(required_skills)
+            if required_skills else 0
+        )
+
+        keyword_overlap = len(
+            set(extract_keywords(job_to_text(job), 20))
+            & resume_keyword_set
+        )
+
         keyword_boost = min(keyword_overlap * 0.015, 0.15)
-        final_score = (float(similarity) * 0.75) + (skill_score * 0.20) + keyword_boost
-        match_percentage = max(0, min(100, round(final_score * 100)))
+
+        final_score = (
+            float(similarity) * 0.65
+            + skill_score * 0.20
+            + keyword_boost
+            + field_bonus
+        )
+
+        match_percentage = max(
+            0,
+            min(100, round(final_score * 100))
+        )
 
         recommendations.append({
             "job": job,
@@ -228,9 +361,13 @@ def recommend_jobs_for_resume(seeker, resume_text: str, jobs: list, limit: int |
 
     ranked = sorted(
         recommendations,
-        key=lambda item: (item["match_percentage"], item["similarity_score"]),
+        key=lambda item: (
+            item["match_percentage"],
+            item["similarity_score"]
+        ),
         reverse=True,
     )
+
     return ranked[:limit] if limit else ranked
 
 
