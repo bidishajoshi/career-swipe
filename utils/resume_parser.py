@@ -518,54 +518,14 @@ def process_resume(filepath, upload_folder):
     elif not experience_summary.strip(): experience_type = "No Experience"
 
     career_field = "Other"
-  field_keywords = {
-    "IT / Software": [
-        "python", "java", "software", "developer", "engineer",
-        "it", "coding", "programming", "react", "node",
-        "django", "flask", "javascript", "typescript",
-        "sql", "aws", "azure", "devops", "cybersecurity",
-        "machine learning", "artificial intelligence"
-    ],
-
-    "Marketing / Sales": [
-        "marketing", "sales", "brand", "advertising",
-        "seo", "digital marketing", "social media",
-        "content marketing", "lead generation",
-        "business development", "crm", "promotion"
-    ],
-
-    "Finance / Accounting": [
-        "finance", "accounting", "bank", "audit",
-        "tax", "ca", "acca", "bookkeeping",
-        "financial analyst", "budgeting",
-        "investment", "payroll", "treasury"
-    ],
-
-    "Healthcare / Medical": [
-        "nurse", "doctor", "medical", "health",
-        "hospital", "mbbs", "clinic",
-        "patient care", "pharmacy",
-        "radiology", "laboratory",
-        "surgeon", "dentist",
-        "physiotherapist", "healthcare"
-    ],
-
-    "Education / Teaching": [
-        "teacher", "professor", "tutor",
-        "education", "school", "lecturer",
-        "curriculum", "classroom",
-        "academic", "training",
-        "instructor", "mentor"
-    ],
-
-    "Design / Creative": [
-        "design", "graphic", "creative",
-        "ui", "ux", "artist",
-        "photoshop", "illustrator",
-        "figma", "video editing",
-        "animation", "branding"
-    ],
-
+    field_keywords = {
+        "IT / Software": ["python", "java", "software", "developer", "engineer", "it", "coding", "programming", "react", "node"],
+        "Marketing / Sales": ["marketing", "sales", "brand", "advertising", "seo", "digital marketing"],
+        "Finance / Accounting": ["finance", "accounting", "bank", "audit", "tax", "ca", "accas"],
+        "Healthcare / Medical": ["nurse", "doctor", "medical", "health", "hospital", "mbbs"],
+        "Education / Teaching": ["teacher", "professor", "tutor", "education", "school", "lecturer"],
+        "Design / Creative": ["design", "graphic", "creative", "ui", "ux", "artist", "photoshop"],
+        
     "Human Resources": [
         "hr", "human resource",
         "recruitment", "talent acquisition",
@@ -610,100 +570,11 @@ def process_resume(filepath, upload_folder):
         "housekeeping",
         "restaurant", "chef"
     ],
-
-    "Retail": [
-        "retail", "store",
-        "cashier", "merchandising",
-        "inventory", "sales associate",
-        "shop manager",
-        "customer service"
-    ],
-
-    "Logistics / Supply Chain": [
-        "logistics", "supply chain",
-        "warehouse", "inventory control",
-        "procurement", "shipping",
-        "transportation",
-        "distribution"
-    ],
-
-    "Banking / Insurance": [
-        "banking", "loan officer",
-        "credit analyst",
-        "insurance",
-        "underwriter",
-        "risk assessment"
-    ],
-
-    "Media / Journalism": [
-        "journalist", "reporter",
-        "editor", "news",
-        "media", "content writer",
-        "copywriter",
-        "broadcasting"
-    ],
-
-    "Agriculture": [
-        "agriculture", "farming",
-        "crop", "livestock",
-        "agronomy", "soil",
-        "irrigation",
-        "agricultural"
-    ],
-
-    "Manufacturing": [
-        "manufacturing",
-        "production",
-        "factory",
-        "quality control",
-        "assembly",
-        "industrial"
-    ],
-
-    "Government / Public Sector": [
-        "government",
-        "public administration",
-        "policy",
-        "civil service",
-        "municipality",
-        "public sector"
-    ],
-
-    "Research / Science": [
-        "research",
-        "scientist",
-        "laboratory",
-        "data analysis",
-        "publication",
-        "thesis",
-        "experiment"
-    ],
-
-    "Customer Support": [
-        "customer support",
-        "call center",
-        "help desk",
-        "service representative",
-        "client support"
-    ],
-
-    "Administration": [
-        "administrator",
-        "office assistant",
-        "office management",
-        "secretary",
-        "documentation",
-        "data entry"
-    ]
-}career_field = "Other"
-best_score = 0
-
-for field, kws in field_keywords.items():
-    score = sum(1 for kw in kws if kw in text_lower)
-
-    if score > best_score:
-        best_score = score
-        career_field = field
+    }
+    for field, kws in field_keywords.items():
+        if any(kw in text_lower for kw in kws):
+            career_field = field
+            break
 
     name_parts = full_name.split()
     first_name = name_parts[0] if len(name_parts) > 0 else "Unknown"
