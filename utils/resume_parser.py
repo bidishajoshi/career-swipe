@@ -44,11 +44,161 @@ def normalize_date(date_str):
 
 # Core skills list for matching (Expanded)
 SKILLS_LIST = [
-    "python", "java", "sql", "html", "css", "javascript", "react", "flask", "django", "node", "aws",
-    "c++", "c#", "php", "ruby", "swift", "kotlin", "go", "rust", "typescript", "angular", "vue",
-    "mongodb", "postgresql", "mysql", "docker", "kubernetes", "git", "linux", "machine learning",
-    "data science", "nlp", "cloud computing", "azure", "gcp", "tableau", "power bi", "excel",
-    "communication", "leadership", "project management", "agile", "scrum", "devops", "testing"
+    # Soft Skills
+    "communication", "leadership", "teamwork", "problem solving",
+    "critical thinking", "time management", "adaptability",
+    "negotiation", "presentation", "customer service",
+    "project management", "decision making", "organization",
+
+    # IT & Software
+    "python", "java", "javascript", "typescript", "c++", "c#",
+    "php", "ruby", "go", "rust", "swift", "kotlin",
+    "html", "css", "react", "angular", "vue",
+    "flask", "django", "nodejs", "spring boot",
+    "sql", "mysql", "postgresql", "mongodb",
+    "docker", "kubernetes", "aws", "azure", "gcp",
+    "git", "linux", "devops", "cybersecurity",
+    "machine learning", "data science", "artificial intelligence",
+
+    # Finance & Accounting
+    "accounting", "bookkeeping", "auditing", "taxation",
+    "financial analysis", "budgeting", "forecasting",
+    "payroll", "quickbooks", "sage", "financial reporting",
+    "risk management", "investment analysis",
+
+    # Healthcare
+    "patient care", "nursing", "clinical care",
+    "medical terminology", "vital signs monitoring",
+    "electronic health records", "ehr",
+    "patient assessment", "medication administration",
+    "infection control", "healthcare management",
+    "medical coding", "medical billing",
+    "pharmacy", "radiology", "laboratory testing",
+    "emergency care", "first aid", "cpr",
+
+    # Doctors & Medical
+    "mbbs", "diagnosis", "surgery",
+    "internal medicine", "cardiology",
+    "orthopedics", "pediatrics",
+    "gynecology", "neurology",
+    "anesthesiology", "pathology",
+
+    # Education
+    "teaching", "classroom management",
+    "curriculum development", "lesson planning",
+    "student assessment", "online teaching",
+    "training", "mentoring", "research",
+
+    # Marketing
+    "digital marketing", "seo", "sem",
+    "content marketing", "social media marketing",
+    "email marketing", "branding",
+    "market research", "google analytics",
+    "advertising", "copywriting",
+
+    # Sales
+    "sales", "business development",
+    "lead generation", "crm",
+    "customer relationship management",
+    "cold calling", "upselling",
+    "negotiation", "sales forecasting",
+
+    # Human Resources
+    "recruitment", "talent acquisition",
+    "employee relations", "performance management",
+    "onboarding", "training",
+    "compensation", "benefits administration",
+    "hr policies",
+
+    # Legal
+    "legal research", "contract drafting",
+    "litigation", "compliance",
+    "corporate law", "documentation",
+    "case management",
+
+    # Engineering
+    "autocad", "solidworks",
+    "civil engineering", "structural design",
+    "mechanical engineering",
+    "electrical engineering",
+    "quality assurance",
+    "manufacturing",
+
+    # Construction
+    "site supervision",
+    "construction management",
+    "quantity surveying",
+    "blueprint reading",
+    "safety compliance",
+
+    # Hospitality
+    "hotel management",
+    "front office",
+    "housekeeping",
+    "food preparation",
+    "food safety",
+    "guest relations",
+    "event management",
+
+    # Retail
+    "inventory management",
+    "merchandising",
+    "cash handling",
+    "point of sale",
+    "store operations",
+
+    # Logistics
+    "supply chain management",
+    "inventory control",
+    "warehouse management",
+    "procurement",
+    "shipping",
+    "transportation management",
+
+    # Banking
+    "retail banking",
+    "loan processing",
+    "credit analysis",
+    "customer banking",
+    "risk assessment",
+
+    # Design
+    "graphic design",
+    "photoshop",
+    "illustrator",
+    "figma",
+    "ui design",
+    "ux design",
+    "video editing",
+    "animation",
+
+    # Media
+    "journalism",
+    "content creation",
+    "video production",
+    "photography",
+    "editing",
+
+    # Agriculture
+    "crop management",
+    "livestock management",
+    "soil analysis",
+    "irrigation",
+    "agricultural research",
+
+    # Government & Administration
+    "public administration",
+    "policy analysis",
+    "documentation",
+    "record management",
+
+    # General Office
+    "microsoft word",
+    "microsoft excel",
+    "powerpoint",
+    "data entry",
+    "report writing",
+    "administration"
 ]
 
 def extract_text_from_pdf(pdf_path):
@@ -368,18 +518,192 @@ def process_resume(filepath, upload_folder):
     elif not experience_summary.strip(): experience_type = "No Experience"
 
     career_field = "Other"
-    field_keywords = {
-        "IT / Software": ["python", "java", "software", "developer", "engineer", "it", "coding", "programming", "react", "node"],
-        "Marketing / Sales": ["marketing", "sales", "brand", "advertising", "seo", "digital marketing"],
-        "Finance / Accounting": ["finance", "accounting", "bank", "audit", "tax", "ca", "accas"],
-        "Healthcare / Medical": ["nurse", "doctor", "medical", "health", "hospital", "mbbs"],
-        "Education / Teaching": ["teacher", "professor", "tutor", "education", "school", "lecturer"],
-        "Design / Creative": ["design", "graphic", "creative", "ui", "ux", "artist", "photoshop"]
-    }
-    for field, kws in field_keywords.items():
-        if any(kw in text_lower for kw in kws):
-            career_field = field
-            break
+  field_keywords = {
+    "IT / Software": [
+        "python", "java", "software", "developer", "engineer",
+        "it", "coding", "programming", "react", "node",
+        "django", "flask", "javascript", "typescript",
+        "sql", "aws", "azure", "devops", "cybersecurity",
+        "machine learning", "artificial intelligence"
+    ],
+
+    "Marketing / Sales": [
+        "marketing", "sales", "brand", "advertising",
+        "seo", "digital marketing", "social media",
+        "content marketing", "lead generation",
+        "business development", "crm", "promotion"
+    ],
+
+    "Finance / Accounting": [
+        "finance", "accounting", "bank", "audit",
+        "tax", "ca", "acca", "bookkeeping",
+        "financial analyst", "budgeting",
+        "investment", "payroll", "treasury"
+    ],
+
+    "Healthcare / Medical": [
+        "nurse", "doctor", "medical", "health",
+        "hospital", "mbbs", "clinic",
+        "patient care", "pharmacy",
+        "radiology", "laboratory",
+        "surgeon", "dentist",
+        "physiotherapist", "healthcare"
+    ],
+
+    "Education / Teaching": [
+        "teacher", "professor", "tutor",
+        "education", "school", "lecturer",
+        "curriculum", "classroom",
+        "academic", "training",
+        "instructor", "mentor"
+    ],
+
+    "Design / Creative": [
+        "design", "graphic", "creative",
+        "ui", "ux", "artist",
+        "photoshop", "illustrator",
+        "figma", "video editing",
+        "animation", "branding"
+    ],
+
+    "Human Resources": [
+        "hr", "human resource",
+        "recruitment", "talent acquisition",
+        "hiring", "onboarding",
+        "employee relations",
+        "performance management"
+    ],
+
+    "Legal": [
+        "lawyer", "attorney",
+        "legal", "advocate",
+        "contract", "litigation",
+        "corporate law",
+        "compliance", "paralegal"
+    ],
+
+    "Engineering": [
+        "civil engineer",
+        "mechanical engineer",
+        "electrical engineer",
+        "structural engineer",
+        "autocad", "solidworks",
+        "engineering design",
+        "quality engineer"
+    ],
+
+    "Construction": [
+        "construction",
+        "site engineer",
+        "site supervisor",
+        "quantity surveyor",
+        "building", "contractor",
+        "project site",
+        "blueprint"
+    ],
+
+    "Hospitality / Tourism": [
+        "hotel", "hospitality",
+        "tourism", "travel",
+        "guest service",
+        "front desk",
+        "housekeeping",
+        "restaurant", "chef"
+    ],
+
+    "Retail": [
+        "retail", "store",
+        "cashier", "merchandising",
+        "inventory", "sales associate",
+        "shop manager",
+        "customer service"
+    ],
+
+    "Logistics / Supply Chain": [
+        "logistics", "supply chain",
+        "warehouse", "inventory control",
+        "procurement", "shipping",
+        "transportation",
+        "distribution"
+    ],
+
+    "Banking / Insurance": [
+        "banking", "loan officer",
+        "credit analyst",
+        "insurance",
+        "underwriter",
+        "risk assessment"
+    ],
+
+    "Media / Journalism": [
+        "journalist", "reporter",
+        "editor", "news",
+        "media", "content writer",
+        "copywriter",
+        "broadcasting"
+    ],
+
+    "Agriculture": [
+        "agriculture", "farming",
+        "crop", "livestock",
+        "agronomy", "soil",
+        "irrigation",
+        "agricultural"
+    ],
+
+    "Manufacturing": [
+        "manufacturing",
+        "production",
+        "factory",
+        "quality control",
+        "assembly",
+        "industrial"
+    ],
+
+    "Government / Public Sector": [
+        "government",
+        "public administration",
+        "policy",
+        "civil service",
+        "municipality",
+        "public sector"
+    ],
+
+    "Research / Science": [
+        "research",
+        "scientist",
+        "laboratory",
+        "data analysis",
+        "publication",
+        "thesis",
+        "experiment"
+    ],
+
+    "Customer Support": [
+        "customer support",
+        "call center",
+        "help desk",
+        "service representative",
+        "client support"
+    ],
+
+    "Administration": [
+        "administrator",
+        "office assistant",
+        "office management",
+        "secretary",
+        "documentation",
+        "data entry"
+    ]
+}career_field = "Other"
+best_score = 0
+
+for field, kws in field_keywords.items():
+    score = sum(1 for kw in kws if kw in text_lower)
+
+    if score > best_score:
+        best_score = score
+        career_field = field
 
     name_parts = full_name.split()
     first_name = name_parts[0] if len(name_parts) > 0 else "Unknown"
