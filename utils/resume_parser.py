@@ -519,12 +519,52 @@ def process_resume(filepath, upload_folder):
 
     career_field = "Other"
     field_keywords = {
-        "IT / Software": ["python", "java", "software", "developer", "engineer", "it", "coding", "programming", "react", "node"],
-        "Marketing / Sales": ["marketing", "sales", "brand", "advertising", "seo", "digital marketing"],
-        "Finance / Accounting": ["finance", "accounting", "bank", "audit", "tax", "ca", "accas"],
-        "Healthcare / Medical": ["nurse", "doctor", "medical", "health", "hospital", "mbbs"],
-        "Education / Teaching": ["teacher", "professor", "tutor", "education", "school", "lecturer"],
-        "Design / Creative": ["design", "graphic", "creative", "ui", "ux", "artist", "photoshop"],
+         "IT / Software": [
+        "python", "java", "software", "developer", "engineer",
+        "it", "coding", "programming", "react", "node",
+        "django", "flask", "javascript", "typescript",
+        "sql", "aws", "azure", "devops", "cybersecurity",
+        "machine learning", "artificial intelligence"
+    ],
+
+    "Marketing / Sales": [
+        "marketing", "sales", "brand", "advertising",
+        "seo", "digital marketing", "social media",
+        "content marketing", "lead generation",
+        "business development", "crm", "promotion"
+    ],
+
+    "Finance / Accounting": [
+        "finance", "accounting", "bank", "audit",
+        "tax", "ca", "acca", "bookkeeping",
+        "financial analyst", "budgeting",
+        "investment", "payroll", "treasury"
+    ],
+
+    "Healthcare / Medical": [
+        "nurse", "doctor", "medical", "health",
+        "hospital", "mbbs", "clinic",
+        "patient care", "pharmacy",
+        "radiology", "laboratory",
+        "surgeon", "dentist",
+        "physiotherapist", "healthcare"
+    ],
+
+    "Education / Teaching": [
+        "teacher", "professor", "tutor",
+        "education", "school", "lecturer",
+        "curriculum", "classroom",
+        "academic", "training",
+        "instructor", "mentor"
+    ],
+
+    "Design / Creative": [
+        "design", "graphic", "creative",
+        "ui", "ux", "artist",
+        "photoshop", "illustrator",
+        "figma", "video editing",
+        "animation", "branding"
+    ],
         
     "Human Resources": [
         "hr", "human resource",
