@@ -32,7 +32,7 @@ class Config:
         if _is_remote and "sslmode=" not in _raw:
             _connect_args["sslmode"] = "require"
         elif not _is_remote:
-            _connect_args["sslmode"] = "prefer"`
+            _connect_args["sslmode"] = "prefer"
         if _connect_args:
             SQLALCHEMY_ENGINE_OPTIONS["connect_args"] = _connect_args
 
