@@ -293,12 +293,18 @@ class JobSwipe(db.Model):
 
     # Swipe direction and application status
     direction  = db.Column(db.String(10), nullable=False)             # left / right
-    status     = db.Column(db.String(20), default='pending')          # pending / shortlisted / rejected / interview / accepted
+    status     = db.Column(db.String(20), default='pending')          # pending / shortlisted / rejected / interview / accepted / hired / offer_extended / offer_accepted
 
     # AI-generated scores
     ats_score      = db.Column(db.Float, default=0.0)
     match_score    = db.Column(db.Float, default=0.0)
     ai_rank_score  = db.Column(db.Float, default=0.0)
+
+    # Interview and hiring tracking
+    interview_stage = db.Column(db.Integer, default=0)                # which interview round (0 = no interview)
+    offer_extended_date = db.Column(db.DateTime)                      # when offer was extended
+    offer_accepted_date = db.Column(db.DateTime)                      # when offer was accepted
+    hired_date     = db.Column(db.DateTime)                           # when candidate was hired
 
     applied_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)      # alias for compatibility

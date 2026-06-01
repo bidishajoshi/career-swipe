@@ -234,7 +234,7 @@ class EligibilityService:
 
     @staticmethod
     def create_eligibility_questions() -> bool:
-        """Create default set of eligibility questions"""
+        """Create default set of eligibility questions (SIMPLIFIED to 3 core questions)"""
         try:
             default_questions = [
                 {
@@ -245,54 +245,18 @@ class EligibilityService:
                     'is_mandatory': True,
                 },
                 {
-                    'question_text': 'What is your age?',
-                    'question_type': 'age_range',
-                    'field_type': 'number',
-                    'display_order': 2,
-                    'is_mandatory': True,
-                },
-                {
                     'question_text': 'Are you available for the required job type (Full-time/Part-time)?',
                     'question_type': 'availability',
                     'field_type': 'select',
                     'field_options': json.dumps(['Full-time', 'Part-time', 'Contract', 'Flexible']),
-                    'display_order': 3,
+                    'display_order': 2,
                     'is_mandatory': True,
                 },
                 {
                     'question_text': 'Years of relevant work experience?',
                     'question_type': 'experience',
                     'field_type': 'number',
-                    'display_order': 4,
-                    'is_mandatory': False,
-                },
-                {
-                    'question_text': 'Are you willing to relocate if required?',
-                    'question_type': 'relocation',
-                    'field_type': 'select',
-                    'field_options': json.dumps(['Yes', 'No', 'Maybe']),
-                    'display_order': 5,
-                    'is_mandatory': False,
-                },
-                {
-                    'question_text': 'What is your expected salary range (annual)?',
-                    'question_type': 'salary',
-                    'field_type': 'text',
-                    'display_order': 6,
-                    'is_mandatory': False,
-                },
-                {
-                    'question_text': 'What is your notice period (days)?',
-                    'question_type': 'notice_period',
-                    'field_type': 'number',
-                    'display_order': 7,
-                    'is_mandatory': False,
-                },
-                {
-                    'question_text': 'I confirm I have the required skills for this position',
-                    'question_type': 'skills_confirmation',
-                    'field_type': 'checkbox',
-                    'display_order': 8,
+                    'display_order': 3,
                     'is_mandatory': True,
                 },
             ]
