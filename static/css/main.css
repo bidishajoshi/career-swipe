@@ -287,7 +287,7 @@ body.light-mode .theme-icon-light {
 .nav-links a[href*="register_company"] {
   background: rgba(16, 185, 129, 0.1);
   color: var(--accent);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(17, 192, 134, 0.2);
 }
 
 .nav-links a[href*="login_company"]:hover {
