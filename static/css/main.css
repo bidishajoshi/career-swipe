@@ -274,7 +274,7 @@ body.light-mode .theme-icon-light {
 .nav-links a[href*="register_seeker"] {
   background: rgba(59, 130, 246, 0.1);
   color: var(--primary);
-  border: 1px solid rgba(50, 125, 247, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .nav-links a[href*="login_seeker"]:hover {
