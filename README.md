@@ -99,6 +99,8 @@ load_dotenv()
 
 ```bash
 python app.py
+or
+python wsgi.py
 ```
 
 Visit: **http://localhost:5000**
