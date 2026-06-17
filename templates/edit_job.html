@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Edit Job – CareerSwipe{% endblock %}
+{% block content %}
+<div class="dash-container">
+  <!-- ── Sidebar ─────────────────────────────────────────────────────── -->
+  <aside class="sidebar company-sidebar" id="dashboardSidebar">
+    <div class="sidebar-brand">
+      <a href="{{ url_for('index') }}" class="nav-logo">Career<span>Swipe</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('company_dashboard') }}#overview" class="sn-link">
+        <span class="nav-icon">📊</span> Overview
+      </a>
+      <a href="{{ url_for('company_dashboard') }}#jobs-section" class="sn-link">
+        <span class="nav-icon">💼</span> My Jobs
+      </a>
+      <a href="{{ url_for('company_dashboard') }}#applicants-section" class="sn-link">
+        <span class="nav-icon">👥</span> Applicants
+      </a>
+      <a href="{{ url_for('post_job') }}" class="sn-link">
+        <span class="nav-icon">➕</span> Post a Job
+      </a>
+      <div class="sidebar-divider"></div>
+      <a href="{{ url_for('logout') }}" class="sn-link logout-link">
+        <span class="nav-icon">🚪</span> Logout
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ── Main Content ────────────────────────────────────────────────── -->
+  <main class="dash-main-v2">
+    <!-- Mobile Header -->
+    <header class="mobile-dash-header">
+      <button id="sidebarToggle" class="sidebar-toggle-btn">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="mobile-logo">Career<span>Swipe</span></div>
+    </header>
+
+    <div class="dash-content-inner">
+      <header class="dash-header-v2">
+        <div class="header-welcome">
+          <h1>Edit <span>Job</span></h1>
+          <p>Update the job details below.</p>
+        </div>
+      </header>
+
+      <div class="auth-card glass" style="max-width: 100%; margin: 0;">
+        <form method="POST" class="auth-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+          <div class="form-section-label">Job Basics</div>
+          <div class="field">
+            <label>Job title</label>
+            <input type="text" name="title" value="{{ job.title }}" required placeholder="e.g. Senior Software Engineer">
+          </div>
+          
+          <div class="field-row">
+            <div class="field">
+              <label>Location</label>
+              <input type="text" name="location" value="{{ job.location or '' }}" placeholder="e.g. Kathmandu / Remote">
+            </div>
+            <div class="field">
+              <label>Job type</label>
+              <select name="job_type">
+                <option {% if job.job_type == 'Full-time' %}selected{% endif %}>Full-time</option>
+                <option {% if job.job_type == 'Part-time' %}selected{% endif %}>Part-time</option>
+                <option {% if job.job_type == 'Contract' %}selected{% endif %}>Contract</option>
+                <option {% if job.job_type == 'Internship' %}selected{% endif %}>Internship</option>
+                <option {% if job.job_type == 'Remote' %}selected{% endif %}>Remote</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Experience level</label>
+              <select name="experience_level">
+                <option {% if job.experience_level == 'Entry Level' %}selected{% endif %}>Entry Level</option>
+                <option {% if job.experience_level == 'Mid Level' %}selected{% endif %}>Mid Level</option>
+                <option {% if job.experience_level == 'Senior Level' %}selected{% endif %}>Senior Level</option>
+                <option {% if job.experience_level == 'Expert' %}selected{% endif %}>Expert</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Location type</label>
+              <select name="job_location_type">
+                <option {% if job.job_location_type == 'Onsite' %}selected{% endif %}>Onsite</option>
+                <option {% if job.job_location_type == 'Remote' %}selected{% endif %}>Remote</option>
+                <option {% if job.job_location_type == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section-label">Compensation & Requirements</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Salary range (e.g. 50,000 - 80,000)</label>
+              <input type="text" name="salary" value="{{ job.salary or '' }}" placeholder="e.g. 50K - 80K">
+            </div>
+            <div class="field">
+              <label>Min years of experience</label>
+              <input type="number" name="min_experience" value="{{ job.min_experience or 0 }}" min="0">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Required skills</label>
+            <textarea name="required_skills" rows="3" placeholder="e.g. Python, React, AWS (comma-separated)">{{ job.required_skills or '' }}</textarea>
+          </div>
+
+          <div class="field">
+            <label>Job description</label>
+            <textarea name="description" rows="6" required placeholder="Describe the job, responsibilities, and requirements...">{{ job.description }}</textarea>
+          </div>
+
+          <div class="field">
+            <label>Tags <span class="opt-label">(optional)</span></label>
+            <input type="text" name="tags" value="{{ job.tags or '' }}" placeholder="e.g. startup, remote-friendly, fast-growing">
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary btn-full" style="flex: 1;">Update Job ✓</button>
+            <a href="{{ url_for('company_dashboard') }}" class="btn btn-outline btn-full" style="flex: 1;">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+  document.getElementById('dashboardSidebar').classList.toggle('active');
+});
+</script>
+{% endblock %}
